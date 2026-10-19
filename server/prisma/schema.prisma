@@ -1,0 +1,451 @@
+// ============================================================================
+// DIVINE FAVOUR — PRISMA DATABASE SCHEMA
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS
+// ----------------------------------------------------------------------------
+
+enum CategoryVisibility {
+  VISIBLE
+  HIDDEN
+}
+
+enum ProductAvailability {
+  IN_STOCK
+  MADE_TO_ORDER
+  LOW_STOCK
+  CUSTOM_ORDER
+  PROVISIONAL_SAMPLE
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  RETAILER
+  WHOLESALER
+  COMMERCIAL
+}
+
+enum EnquiryType {
+  QUOTE_STANDARD
+  QUOTE_CUSTOM
+  CONTACT_GENERAL
+}
+
+enum EnquiryStatus {
+  NEW
+  IN_REVIEW
+  CONTACTED
+  QUOTED
+  CLOSED
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  STAFF
+  SUPERADMIN
+}
+
+enum OrderStatus {
+  DRAFT
+  AWAITING_DEPOSIT
+  IN_PRODUCTION
+  PRODUCTION_COMPLETED
+  READY_FOR_DISPATCH
+  DISPATCHED_TO_PARK
+  ARRIVED_AT_PARK
+  AWAITING_BALANCE
+  CLEARED_FOR_RELEASE
+  RELEASED
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderPaymentStatus {
+  PENDING_DEPOSIT
+  DEPOSIT_SUBMITTED
+  DEPOSIT_VERIFIED
+  AWAITING_BALANCE
+  BALANCE_SUBMITTED
+  PAID_IN_FULL
+}
+
+enum OrderProductionStatus {
+  AWAITING_DEPOSIT
+  IN_PRODUCTION
+  PRODUCTION_COMPLETED
+  READY_FOR_DISPATCH
+}
+
+enum PaymentType {
+  DEPOSIT
+  BALANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUBMITTED
+  VERIFIED
+  REJECTED
+}
+
+enum DispatchMethod {
+  WAYBILL
+  DIRECT_PICKUP
+  LOCAL_DELIVERY
+}
+
+enum DispatchStatus {
+  NOT_DISPATCHED
+  IN_TRANSIT_TO_PARK
+  ARRIVED_AT_PARK
+  AWAITING_BALANCE
+  CLEARED_FOR_RELEASE
+  RELEASED
+  COMPLETED
+}
+
+// ----------------------------------------------------------------------------
+// 1. CATEGORY
+// ----------------------------------------------------------------------------
+
+model Category {
+  id           String              @id @default(uuid())
+  name         String
+  slug         String              @unique
+  description  String
+  imageUrl     String?
+  displayOrder Int                 @default(1)
+  visibility   CategoryVisibility  @default(VISIBLE)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  products     Product[]
+
+  @@index([displayOrder])
+  @@index([visibility])
+  @@map("categories")
+}
+
+// ----------------------------------------------------------------------------
+// 2. PRODUCT
+// ----------------------------------------------------------------------------
+
+model Product {
+  id               String               @id @default(uuid())
+  name             String
+  slug             String               @unique
+  shortDescription String
+  description      String
+  categoryId       String
+  category         Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  mainImageUrl     String?
+  galleryImageUrls String[]             @default([])
+  specifications   Json?
+  featured         Boolean              @default(false)
+  status           ProductAvailability  @default(IN_STOCK)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  enquiries        Enquiry[]
+  enquiryItems     EnquiryItem[]
+  orderItems       OrderItem[]
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([featured])
+  @@map("products")
+}
+
+// ----------------------------------------------------------------------------
+// 3. ENQUIRY
+// ----------------------------------------------------------------------------
+
+model Enquiry {
+  id                   String         @id @default(uuid())
+  reference            String         @unique
+  trackingTokenHash    String?        @unique
+  customerName         String
+  businessName         String?
+  customerPhone        String
+  customerEmail        String?
+  customerType         CustomerType
+  enquiryType          EnquiryType
+  subject              String?
+  productId            String?
+  product              Product?       @relation(fields: [productId], references: [id], onDelete: SetNull)
+  requestedProductName String?
+  requestedQuantity    String?
+  requestedUnit        String?
+  specifications       Json?
+  customerMessage      String?
+  status               EnquiryStatus  @default(NEW)
+  source               String         @default("WEBSITE")
+  internalNotes        String?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  items                EnquiryItem[]
+  notes                EnquiryNote[]
+  orders               Order[]
+
+  @@index([reference])
+  @@index([trackingTokenHash])
+  @@index([status])
+  @@index([enquiryType])
+  @@index([createdAt])
+  @@map("enquiries")
+}
+
+// ----------------------------------------------------------------------------
+// 4. ENQUIRY ITEM (MULTI-PRODUCT & SNAPSHOT SPECIFICATIONS)
+// ----------------------------------------------------------------------------
+
+model EnquiryItem {
+  id             String    @id @default(uuid())
+  enquiryId      String
+  enquiry        Enquiry   @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName    String
+  productSlug    String?
+  quantity       Int?
+  unit           String?
+  size           String?
+  gauge          String?
+  color          String?
+  customPrinting String?
+  specifications Json?
+  createdAt      DateTime  @default(now())
+
+  @@index([enquiryId])
+  @@map("enquiry_items")
+}
+
+// ----------------------------------------------------------------------------
+// 5. ENQUIRY NOTE (STAFF-ONLY INTERNAL NOTES)
+// ----------------------------------------------------------------------------
+
+model EnquiryNote {
+  id        String     @id @default(uuid())
+  enquiryId String
+  enquiry   Enquiry    @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    AdminUser? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  content   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([enquiryId])
+  @@map("enquiry_notes")
+}
+
+// ----------------------------------------------------------------------------
+// 6. BUSINESS SETTINGS (SINGLETON)
+// ----------------------------------------------------------------------------
+
+model BusinessSettings {
+  id                  String   @id @default("default")
+  businessName        String   @default("Divine Favour")
+  tagline             String   @default("Quality Packaging. Reliable Supply.")
+  shortDescription    String?
+  fullDescription     String?
+  businessDescription String?
+  logoUrl             String?
+  email               String?
+  phone               String?
+  whatsAppNumber      String?
+  address             String?
+  businessHours       Json?
+  socialLinks         Json?
+  metaTitle           String?
+  metaDescription     String?
+  quoteInstructions   String?
+  publicAnnouncement  String?
+  presentation        Json?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("business_settings")
+}
+
+// ----------------------------------------------------------------------------
+// 7. ADMIN USER
+// ----------------------------------------------------------------------------
+
+model AdminUser {
+  id                 String        @id @default(uuid())
+  name               String
+  email              String        @unique
+  passwordHash       String
+  role               AdminRole     @default(STAFF)
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  enquiryNotes       EnquiryNote[]
+  auditLogsActor     AuditLog[]    @relation("AuditLogActor")
+  auditLogsTarget    AuditLog[]    @relation("AuditLogTarget")
+  ordersCreated      Order[]       @relation("OrderCreatedBy")
+  paymentsVerified   Payment[]     @relation("PaymentVerifiedBy")
+  releasesAuthorized Dispatch[]   @relation("ReleaseAuthorizedBy")
+
+  @@map("admin_users")
+}
+
+// ----------------------------------------------------------------------------
+// 8. SESSION STORE (CONNECT-PG-SIMPLE)
+// ----------------------------------------------------------------------------
+
+model Session {
+  sid    String   @id @db.VarChar(255)
+  sess   Json
+  expire DateTime @db.Timestamp(6)
+
+  @@index([expire], map: "IDX_session_expire")
+  @@map("session")
+}
+
+// ----------------------------------------------------------------------------
+// 9. AUDIT LOG (PHASE 12.75 RBAC & AUDIT LOGGING)
+// ----------------------------------------------------------------------------
+
+model AuditLog {
+  id         String     @id @default(uuid())
+  action     String     // e.g. USER_CREATED, ROLE_CHANGED, USER_ACTIVATED, USER_DEACTIVATED, PASSWORD_RESET
+  actorId    String?    @map("actor_id")
+  actor      AdminUser? @relation("AuditLogActor", fields: [actorId], references: [id], onDelete: SetNull)
+  targetId   String?    @map("target_id")
+  target     AdminUser? @relation("AuditLogTarget", fields: [targetId], references: [id], onDelete: SetNull)
+  details    Json?
+  ipAddress  String?    @map("ip_address")
+  userAgent  String?    @map("user_agent")
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  @@index([action])
+  @@index([actorId])
+  @@index([targetId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ----------------------------------------------------------------------------
+// 10. ORDER MANAGEMENT (PHASE 14)
+// ----------------------------------------------------------------------------
+
+model Order {
+  id               String                @id @default(uuid())
+  orderNumber      String                @unique @map("order_number")
+  enquiryId        String?               @map("enquiry_id")
+  enquiry          Enquiry?              @relation(fields: [enquiryId], references: [id], onDelete: SetNull)
+  customerName     String                @map("customer_name")
+  customerEmail    String?               @map("customer_email")
+  customerPhone    String                @map("customer_phone")
+  deliveryAddress  String?               @map("delivery_address")
+  currency         String                @default("NGN")
+  subtotal         Decimal               @db.Decimal(12, 2)
+  discount         Decimal               @default(0) @db.Decimal(12, 2)
+  totalAmount      Decimal               @map("total_amount") @db.Decimal(12, 2)
+  depositRequired  Decimal               @map("deposit_required") @db.Decimal(12, 2)
+  balanceRequired  Decimal               @map("balance_required") @db.Decimal(12, 2)
+  depositPaid      Decimal               @default(0) @map("deposit_paid") @db.Decimal(12, 2)
+  balancePaid      Decimal               @default(0) @map("balance_paid") @db.Decimal(12, 2)
+  paymentStatus    OrderPaymentStatus    @default(PENDING_DEPOSIT) @map("payment_status")
+  productionStatus OrderProductionStatus @default(AWAITING_DEPOSIT) @map("production_status")
+  status           OrderStatus           @default(AWAITING_DEPOSIT)
+  notes            String?
+  createdById      String?               @map("created_by_id")
+  createdBy        AdminUser?            @relation("OrderCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+
+  items            OrderItem[]
+  payments         Payment[]
+  dispatch         Dispatch?
+
+  @@index([orderNumber])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([productionStatus])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id             String   @id @default(uuid())
+  orderId        String   @map("order_id")
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId      String?  @map("product_id")
+  product        Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName    String   @map("product_name")
+  specifications String?
+  quantity       Int
+  unit           String   @default("units")
+  unitPrice      Decimal  @map("unit_price") @db.Decimal(12, 2)
+  lineTotal      Decimal  @map("line_total") @db.Decimal(12, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id               String        @id @default(uuid())
+  orderId          String        @map("order_id")
+  order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  paymentType      PaymentType   @map("payment_type")
+  amountExpected   Decimal       @map("amount_expected") @db.Decimal(12, 2)
+  amountReceived   Decimal?      @map("amount_received") @db.Decimal(12, 2)
+  paymentMethod    String?       @map("payment_method")
+  paymentReference String?       @map("payment_reference")
+  customerClaimRef String?       @map("customer_claim_ref")
+  status           PaymentStatus @default(PENDING)
+  verifiedById     String?       @map("verified_by_id")
+  verifiedBy       AdminUser?    @relation("PaymentVerifiedBy", fields: [verifiedById], references: [id], onDelete: SetNull)
+  verifiedAt       DateTime?     @map("verified_at")
+  internalNotes    String?       @map("internal_notes")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  @@index([orderId])
+  @@index([status])
+  @@map("payments")
+}
+
+model Dispatch {
+  id                     String         @id @default(uuid())
+  orderId                String         @unique @map("order_id")
+  order                  Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dispatchMethod         DispatchMethod @default(WAYBILL) @map("dispatch_method")
+  transportCompany       String?        @map("transport_company")
+  parkDestination        String?        @map("park_destination")
+  waybillNumber          String?        @map("waybill_number")
+  driverName             String?        @map("driver_name")
+  driverPhone            String?        @map("driver_phone")
+  vehiclePlate           String?        @map("vehicle_plate")
+  dispatchStatus         DispatchStatus @default(NOT_DISPATCHED) @map("dispatch_status")
+  dispatchedAt           DateTime?      @map("dispatched_at")
+  parkArrivalConfirmedAt DateTime?      @map("park_arrival_confirmed_at")
+  arrivalConfirmerName   String?        @map("arrival_confirmer_name")
+  arrivalNotes           String?        @map("arrival_notes")
+  balanceRequestedAt     DateTime?      @map("balance_requested_at")
+  releaseAuthorizedById  String?        @map("release_authorized_by_id")
+  releaseAuthorizedBy    AdminUser?     @relation("ReleaseAuthorizedBy", fields: [releaseAuthorizedById], references: [id], onDelete: SetNull)
+  releaseAuthorizedAt    DateTime?      @map("release_authorized_at")
+  releaseNotes           String?        @map("release_notes")
+  releasedAt             DateTime?      @map("released_at")
+  createdAt              DateTime       @default(now()) @map("created_at")
+  updatedAt              DateTime       @updatedAt @map("updated_at")
+
+  @@map("dispatches")
+}

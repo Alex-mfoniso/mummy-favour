@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <rect width="32" height="32" rx="6" fill="#246B45" />
+  <!-- Geometric folded packaging / interlocking film layers -->
+  <path d="M9 10L16 6L23 10V22L16 26L9 22V10Z" stroke="#FFFFFF" stroke-width="1.75" stroke-linejoin="round" />
+  <path d="M16 6V26" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.8" />
+  <path d="M9 10L16 14L23 10" stroke="#FFFFFF" stroke-width="1.5" stroke-linejoin="round" />
+  <path d="M16 14V26" stroke="#D3E6DA" stroke-width="1.5" stroke-linecap="round" />
+</svg>
