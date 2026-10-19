@@ -40,8 +40,9 @@ class ApiClient {
   private onUnauthorizedCallbacks: Array<() => void> = [];
 
   constructor() {
-    // Read from Vite environment variable or fall back to local dev server
-    const rawUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined) || 'http://localhost:5000/api/v1';
+    // Read from Vite environment variable or fall back to same-origin relative path in production
+    const defaultUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1';
+    const rawUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined) || defaultUrl;
     this.baseUrl = rawUrl.replace(/\/+$/, '');
   }
 
