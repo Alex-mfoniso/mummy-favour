@@ -18,7 +18,7 @@ export const INITIAL_CATEGORIES = [
     name: 'Nylon Rolls & Film',
     slug: 'nylon-rolls-and-film',
     description:
-      'Continuous plastic sheeting, shrink bundling films, and protective rolls for industrial wrapping and agriculture.',
+      'Continuous plastic sheeting, shrink bundling films, pure water rolls, and protective films for industrial packaging.',
     imageUrl: '/images/categories/nylon-rolls-and-film.jpg',
     displayOrder: 2,
     visibility: CategoryVisibility.VISIBLE,
@@ -38,7 +38,7 @@ export const INITIAL_CATEGORIES = [
     name: 'Custom Printed Nylon',
     slug: 'custom-printed-nylon',
     description:
-      'Custom brand artwork and tailored bag gauges for retailers and corporate distributors, subject to production setup.',
+      'Bespoke bakery bags, branded shopping carriers, and tailored poly films with precision flexographic printing.',
     imageUrl: '/images/categories/custom-printed-nylon.jpg',
     displayOrder: 4,
     visibility: CategoryVisibility.VISIBLE,
@@ -48,7 +48,7 @@ export const INITIAL_CATEGORIES = [
     name: 'Other Nylon Products',
     slug: 'other-nylon-products',
     description:
-      'Specialty poly liners, mulch sheeting, and specialty extruded films for agricultural and unique packing needs.',
+      'Specialty agricultural mulch sheeting, protective drop films, and heavy-gauge construction membranes.',
     imageUrl: '/images/categories/other-nylon-products.jpg',
     displayOrder: 5,
     visibility: CategoryVisibility.VISIBLE,
@@ -67,9 +67,8 @@ export const INITIAL_PRODUCTS = [
       'Precision-extruded low-density carrier bags offering dependable tensile strength and neat presentation for retail shops, supermarkets, and boutique outlets. Engineered to carry diverse merchandise without bottom seam splitting.',
     mainImageUrl: '/images/products/carrier-bag-white-stack.jpg',
     galleryImageUrls: [
-      '/images/products/carrier-bag-punch-hole-yellow.jpg',
       '/images/products/wholesale-blue-carrier-bundles.jpg',
-      '/images/products/carrier-bag-punch-hole-white-back.jpg',
+      '/images/products/wholesale-blue-bundles-dispatch.jpg',
     ],
     featured: true,
     status: ProductAvailability.IN_STOCK,
@@ -86,7 +85,7 @@ export const INITIAL_PRODUCTS = [
       minOrderQuantity: '1,000 units',
       targetAudience: ['retailer', 'individual', 'wholesaler'],
       customizationOptions: ['Punch Hole Handle', 'Loop Handle', 'Vest Style', 'Flexo Print Option'],
-      isProvisional: true,
+      isProvisional: false,
       specifications: [
         { label: 'Handle Styles', value: 'Punch Hole, Loop Handle, Vest Carrier' },
         { label: 'Thickness Range', value: '35 – 65 Microns' },
@@ -107,6 +106,7 @@ export const INITIAL_PRODUCTS = [
       'Tough, co-extruded heavy-duty sacks formulated to endure abrasive grains, powders, fertilizers, and building materials. Built with enhanced seal security and drop resistance during warehouse staging and long-haul transit.',
     mainImageUrl: '/images/products/wholesale-dispatch-sacks.jpg',
     galleryImageUrls: [
+      '/images/products/factory-raw-materials-polymer-rolls.jpg',
       '/images/products/raw-materials-indorama-polymer.jpg',
       '/images/products/wholesale-white-bag-stacks.jpg',
     ],
@@ -121,7 +121,7 @@ export const INITIAL_PRODUCTS = [
       minOrderQuantity: '500 units',
       targetAudience: ['commercial', 'wholesaler', 'distributor'],
       customizationOptions: ['Gusseted Sides', 'Anti-Static Additive', 'UV Stabilizer', 'Micro-Perforation'],
-      isProvisional: true,
+      isProvisional: false,
       specifications: [
         { label: 'Load Capacity', value: 'Up to 50 kg per sack' },
         { label: 'Thickness Range', value: '80 – 150 Microns' },
@@ -132,17 +132,17 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-003',
-    name: 'Industrial Shrink & Packaging Film Rolls',
-    slug: 'industrial-shrink-packaging-film-rolls',
+    name: 'Continuous Heat-Shrink Bundling Film',
+    slug: 'heat-shrink-bundling-film',
     categoryId: 'nylon-rolls-and-film',
     shortDescription:
-      'Uniform-gauge bundling rolls and pallet wrapping film for transit stability and warehouse hygiene.',
+      'Uniform-gauge bundling rolls and wrapping film for transit stability and automated packaging.',
     description:
-      'Extruded polyethylene film wound on heavy-duty cores for automated bundling lines or manual pallet wrap. Yields uniform stretch recovery and barrier protection against ambient moisture, dust accumulation, and surface scuffing.',
-    mainImageUrl: '/images/products/industrial-black-nylon-rolls.jpg',
+      'Extruded polyethylene film wound on heavy-duty cores for automated bundling lines or heat tunnels. Yields uniform stretch recovery and barrier protection against ambient moisture, dust accumulation, and surface scuffing.',
+    mainImageUrl: '/images/products/flexo-printed-film-rolls-rich-tea.jpg',
     galleryImageUrls: [
-      '/images/products/nylon-rolls-sheeting-bundles.jpg',
-      '/images/products/wholesale-dispatch-sacks.jpg',
+      '/images/products/industrial-black-nylon-rolls.jpg',
+      '/images/products/extrusion-jumbo-nylon-rolls.jpg',
     ],
     featured: true,
     status: ProductAvailability.IN_STOCK,
@@ -155,7 +155,7 @@ export const INITIAL_PRODUCTS = [
       minOrderQuantity: '10 rolls',
       targetAudience: ['commercial', 'wholesaler', 'distributor'],
       customizationOptions: ['Core Diameter Sizing', 'Machine Grade High-Elongation', 'Corona Treated Surface'],
-      isProvisional: true,
+      isProvisional: false,
       specifications: [
         { label: 'Film Widths', value: '450mm, 500mm, 1000mm, 1200mm' },
         { label: 'Gauge Range', value: '20 – 50 Microns' },
@@ -166,17 +166,16 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-004',
-    name: 'High-Clarity Bakery & Food Grade Bags',
-    slug: 'high-clarity-bakery-food-grade-bags',
+    name: 'Food-Grade Gusseted Liners',
+    slug: 'food-grade-gusseted-liners',
     categoryId: 'packaging-bags',
     shortDescription:
-      'Odor-free, ultra-clear poly bags tailored for baked loaves, snacks, and dry foodstuff presentation.',
+      'Sanitary, moisture-barrier box and carton liners for bulk food and produce.',
     description:
-      'Manufactured from food-contact-approved prime virgin resin. These crystal-clear poly bags keep crusts crisp and display foodstuffs cleanly on retail shelving while shielding content from airborne contamination.',
+      'Produced using compliant virgin polymer grades, these deep-gusseted liners protect dry ingredients, grains, bakery mixes, and agricultural harvest from external dust and moisture migration.',
     mainImageUrl: '/images/products/packaging-bags-4x7-bundles.jpg',
     galleryImageUrls: [
       '/images/products/packaging-bags-clear-stacks.jpg',
-      '/images/products/custom-printed-nwanne-bakery.jpg',
     ],
     featured: false,
     status: ProductAvailability.IN_STOCK,
@@ -184,24 +183,24 @@ export const INITIAL_PRODUCTS = [
       materialGrade: 'Virgin Polypropylene (PP) / High-Clarity LDPE',
       material: 'Virgin Polypropylene (PP) / High-Clarity LDPE',
       thickness: '25 – 40 Microns',
-      dimensions: ['15 x 25 cm', '20 x 30 cm', '25 x 40 cm', 'Custom Loaf Size'],
+      dimensions: ['15 x 25 cm', '20 x 30 cm', '25 x 40 cm', 'Custom Box Liners'],
       availableColors: ['Ultra-Clear Natural'],
       minOrderQuantity: '2,500 units',
       targetAudience: ['retailer', 'commercial', 'individual'],
-      customizationOptions: ['Side Gusset for Loaf Expansion', 'Ventilation Micro-Punches', 'Adhesive Strip Seal'],
-      isProvisional: true,
+      customizationOptions: ['Side Gusset for Expansion', 'Ventilation Micro-Punches', 'Adhesive Strip Seal'],
+      isProvisional: false,
       specifications: [
         { label: 'Clarity Rating', value: 'High Gloss Optical Transparency' },
         { label: 'Thickness Range', value: '25 – 40 Microns' },
-        { label: 'Resin Compliance', value: 'Virgin FDA Food-Contact Grade Equivalent' },
+        { label: 'Resin Compliance', value: 'Virgin Food-Contact Grade' },
         { label: 'Sealing Compatibility', value: 'Impulse Heat Seal, Twist Ties, Tape Dispenser' },
       ],
     },
   },
   {
     id: 'df-prod-005',
-    name: 'Agricultural Mulch & Greenhouse Sheeting',
-    slug: 'agricultural-mulch-greenhouse-sheeting',
+    name: 'Agricultural Mulch & Greenhouse Films',
+    slug: 'agricultural-mulch-greenhouse-films',
     categoryId: 'other-nylon-products',
     shortDescription:
       'UV-stabilized extruded agricultural film designed for moisture retention and weed control.',
@@ -210,7 +209,6 @@ export const INITIAL_PRODUCTS = [
     mainImageUrl: '/images/products/nylon-rolls-sheeting-bundles.jpg',
     galleryImageUrls: [
       '/images/products/industrial-black-nylon-rolls.jpg',
-      '/images/products/raw-materials-indorama-polymer.jpg',
     ],
     featured: false,
     status: ProductAvailability.MADE_TO_ORDER,
@@ -223,7 +221,7 @@ export const INITIAL_PRODUCTS = [
       minOrderQuantity: '5 rolls',
       targetAudience: ['commercial', 'distributor'],
       customizationOptions: ['Pre-Punched Planting Holes', 'UV Exposure Rating (6 - 12 Months)', 'Center Fold Sheeting'],
-      isProvisional: true,
+      isProvisional: false,
       specifications: [
         { label: 'UV Lifespan Rating', value: 'Up to 12 Months Continuous Tropical Exposure' },
         { label: 'Standard Widths', value: '1.0m, 1.2m, 1.5m, 2.0m' },
@@ -234,8 +232,8 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-006',
-    name: 'Bespoke Branded Packaging Nylon',
-    slug: 'bespoke-branded-packaging-nylon',
+    name: 'Custom Printed Packaging Nylon',
+    slug: 'custom-printed-packaging-nylon',
     categoryId: 'custom-printed-nylon',
     shortDescription:
       'Tailored flexographic-printed carrier bags and custom branded sheeting with sharp logos.',
@@ -244,8 +242,8 @@ export const INITIAL_PRODUCTS = [
     mainImageUrl: '/images/products/custom-printed-ziks-diner.jpg',
     galleryImageUrls: [
       '/images/products/custom-printed-ziks-detail.jpg',
-      '/images/products/custom-printed-nwanne-bakery.jpg',
       '/images/products/custom-printed-vest-bag.jpg',
+      '/images/products/custom-printed-nwanne-bakery.jpg',
     ],
     featured: true,
     status: ProductAvailability.CUSTOM_ORDER,
@@ -258,12 +256,161 @@ export const INITIAL_PRODUCTS = [
       minOrderQuantity: '5,000 units / 250 kg production batch minimum',
       targetAudience: ['commercial', 'wholesaler', 'retailer'],
       customizationOptions: ['Flexographic Print up to 4 Colors', 'Custom Die-Cut Handle', 'Reinforced Patch Handle'],
-      isProvisional: true,
+      isProvisional: false,
       specifications: [
         { label: 'Print Capabilities', value: '1 to 4 Colors Flexographic Print, Front & Back' },
         { label: 'Plate Setup', value: 'Custom Photopolymer Stereo Plates' },
         { label: 'Lead Time', value: 'Estimated 7 – 14 working days from plate approval' },
         { label: 'Minimum Batch', value: '5,000 bags or 250 kg extrusion run' },
+      ],
+    },
+  },
+  {
+    id: 'df-prod-007',
+    name: 'Industrial Stretch Wrap Pallet Film',
+    slug: 'industrial-stretch-wrap-pallet-film',
+    categoryId: 'nylon-rolls-and-film',
+    shortDescription:
+      'High-yield cast stretch wrap for tight warehouse pallet stabilization and containment.',
+    description:
+      'Multi-layer cast stretch film engineered with high cling retention and tear resistance. Ensures pallet loads remain securely bound throughout freight transport, protecting contents against dust, dirt, and moisture.',
+    mainImageUrl: '/images/products/extrusion-jumbo-nylon-rolls.jpg',
+    galleryImageUrls: [
+      '/images/products/factory-raw-materials-polymer-rolls.jpg',
+    ],
+    featured: false,
+    status: ProductAvailability.IN_STOCK,
+    specifications: {
+      materialGrade: 'Cast Linear Low-Density Polyethylene (LLDPE)',
+      material: 'Cast Linear Low-Density Polyethylene (LLDPE)',
+      thickness: '17 – 25 Microns',
+      dimensions: ['500 mm Width x 300 m Length'],
+      availableColors: ['Clear Transparent', 'Opaque Black Security Grade'],
+      minOrderQuantity: '1 Carton (6 Rolls)',
+      targetAudience: ['commercial', 'distributor'],
+      customizationOptions: ['Hand Application Rolls', 'Machine Stretch Core (Extended)'],
+      isProvisional: false,
+      specifications: [
+        { label: 'Roll Dimensions', value: '500mm x 300m' },
+        { label: 'Elongation Yield', value: 'Up to 250% stretch recovery' },
+        { label: 'Cling Properties', value: 'Single-sided or double-sided cling' },
+        { label: 'Core Weight', value: 'Reinforced paper core' },
+      ],
+    },
+  },
+  {
+    id: 'df-prod-008',
+    name: 'Reinforced Punch-Hole Boutique Bags',
+    slug: 'reinforced-punch-hole-boutique-bags',
+    categoryId: 'carrier-bags',
+    shortDescription:
+      'Thick-walled carrier bags with patch-reinforced handles for boutique retail and fashion.',
+    description:
+      'Sophisticated retail packaging featuring welded patch reinforcement around the handle opening. Delivers higher load-bearing capacity without handle stretching, offering a premium feel for fashion and gift retailers.',
+    mainImageUrl: '/images/products/carrier-bag-punch-hole-yellow.jpg',
+    galleryImageUrls: [
+      '/images/products/carrier-bag-punch-hole-white-back.jpg',
+    ],
+    featured: false,
+    status: ProductAvailability.MADE_TO_ORDER,
+    specifications: {
+      materialGrade: 'Heavy-Gauge Virgin LDPE',
+      material: 'Heavy-Gauge Virgin LDPE',
+      thickness: '50 – 80 Microns',
+      dimensions: [
+        '30 x 40 cm (+ 6 cm Bottom Gusset)',
+        '40 x 50 cm (+ 8 cm Bottom Gusset)',
+      ],
+      availableColors: ['Glossy White', 'Matte Charcoal', 'Emerald Forest', 'Custom Tint'],
+      minOrderQuantity: '2,000 units',
+      targetAudience: ['retailer', 'individual'],
+      customizationOptions: ['Patch-Reinforced Handle', 'Bottom Expansion Gusset', 'Custom Tint Batching'],
+      isProvisional: false,
+      specifications: [
+        { label: 'Handle Construction', value: 'Welded internal patch reinforcement' },
+        { label: 'Thickness Range', value: '50 – 80 Microns' },
+        { label: 'Gusset Style', value: 'Bottom expanding gusset' },
+        { label: 'Texture', value: 'Glossy or satin smooth finish' },
+      ],
+    },
+  },
+  {
+    id: 'df-prod-009',
+    name: 'Printed Sachet Water Rolls (Pure Water Film)',
+    slug: 'printed-sachet-water-rolls',
+    categoryId: 'nylon-rolls-and-film',
+    shortDescription:
+      'High-clarity, leak-proof printed polythene film rolls for automated sachet water packaging.',
+    description:
+      'Engineered specifically for commercial water packaging factories across Nigeria. Formulated from 100% prime virgin food-contact grade LDPE for high tensile yield, puncture resistance, and seamless sealing on automatic Form-Fill-Seal (FFS) machines.',
+    mainImageUrl: '/images/products/sachet-water-printed-rolls.jpg',
+    galleryImageUrls: [
+      '/images/products/flexo-printed-film-rolls-rich-tea.jpg',
+      '/images/products/flexo-printed-film-rolls-love-bite.jpg',
+    ],
+    featured: true,
+    status: ProductAvailability.IN_STOCK,
+    specifications: {
+      materialGrade: 'Virgin Food-Grade Low-Density Polyethylene (LDPE)',
+      material: 'Virgin Food-Grade Low-Density Polyethylene (LDPE)',
+      thickness: '50 – 75 Microns',
+      dimensions: [
+        'Roll Width: 320 mm (Standard Sachet Width)',
+        'Roll Width: 330 mm',
+        'Custom Micron Gauges on Request',
+      ],
+      availableColors: ['High-Clarity Natural with Custom Flexo Branding', 'Sky Blue Print', 'Deep Blue Print'],
+      minOrderQuantity: '10 Rolls / 100 kg Batch',
+      targetAudience: ['commercial', 'wholesaler', 'distributor'],
+      customizationOptions: ['Bespoke Brand Logo & NAFDAC Flexo Print', 'Custom Roll Weights', 'UV Treated Film'],
+      isProvisional: false,
+      specifications: [
+        { label: 'Application', value: 'Automated Form-Fill-Seal Sachet Water (Pure Water) Production' },
+        { label: 'Standard Film Width', value: '320 mm / 330 mm' },
+        { label: 'Gauge Range', value: '50 – 75 Microns (Pin-hole resistant)' },
+        { label: 'Polymer Compliance', value: 'Food & Beverage Grade Odorless Virgin LDPE' },
+        { label: 'Core Diameter', value: '76 mm (3 inches) standard paper core' },
+        { label: 'Sealing Integrity', value: 'High thermal bond strength, zero leakage' },
+      ],
+    },
+  },
+  {
+    id: 'df-prod-010',
+    name: 'Custom Printed Bread & Bakery Packaging Bags',
+    slug: 'custom-printed-bread-bakery-bags',
+    categoryId: 'custom-printed-nylon',
+    shortDescription:
+      'Vibrant, food-contact approved printed polythene bread wrappers and bakery packaging bags.',
+    description:
+      'Tailored for commercial bakeries, confectioners, and food distributors. Manufactured with high-adhesion flexographic printing inks that resist smear, heat, and moisture, keeping loaves soft and visually appealing on retail shelves.',
+    mainImageUrl: '/images/products/printed-bread-packaging-bags-maybell.jpg',
+    galleryImageUrls: [
+      '/images/products/custom-printed-bakery-bags-ngozika.jpg',
+      '/images/products/custom-printed-poly-bags-frio.jpg',
+      '/images/products/flexo-printed-film-rolls-love-bite.jpg',
+    ],
+    featured: true,
+    status: ProductAvailability.CUSTOM_ORDER,
+    specifications: {
+      materialGrade: 'High-Clarity Food-Contact Polypropylene (PP) / Virgin LDPE',
+      material: 'High-Clarity Food-Contact Polypropylene (PP) / Virgin LDPE',
+      thickness: '25 – 45 Microns',
+      dimensions: [
+        '500g Loaf (18 x 35 cm)',
+        '800g / 900g Family Loaf (20 x 42 cm)',
+        '1kg Jumbo Loaf (22 x 45 cm)',
+      ],
+      availableColors: ['Full Brand Multi-Color Flexographic Printing'],
+      minOrderQuantity: '5,000 units',
+      targetAudience: ['commercial', 'wholesaler', 'retailer'],
+      customizationOptions: ['Side Gusset for Loaf Expansion', 'Micro-Vent Perforations', 'Wicketed for Fast Packing', 'Twist-Tie Lip Extension'],
+      isProvisional: false,
+      specifications: [
+        { label: 'Primary Use', value: 'Sliced Bread, Unsliced Loaves, Rolls & Confectioneries' },
+        { label: 'Printing Technology', value: 'High-Definition Flexographic Printing (Up to 4 Colors)' },
+        { label: 'Ink Safety', value: 'Toxics in Packaging Compliant / Odor-Free Bakery Inks' },
+        { label: 'Barrier Features', value: 'Moisture retention to prevent premature staling' },
+        { label: 'Closure Compatibility', value: 'Heat Seal, Tape Dispenser, Twist Ties, Kwik Lok clips' },
       ],
     },
   },
@@ -342,13 +489,13 @@ export async function seedDatabase(): Promise<{
 // Direct execution when run via `node` or `tsx`
 if (process.argv[1]?.endsWith('seed.ts') || process.argv[1]?.endsWith('seed.js')) {
   seedDatabase()
-    .then(async () => {
-      await disconnectDatabase();
-      process.exit(0);
-    })
-    .catch(async (err) => {
-      console.error('[Seed Error]', err);
-      await disconnectDatabase();
-      process.exit(1);
-    });
+  .then(async () => {
+    await disconnectDatabase();
+    process.exit(0);
+  })
+  .catch(async (err) => {
+    console.error('[Seed Error]', err);
+    await disconnectDatabase();
+    process.exit(1);
+  });
 }
