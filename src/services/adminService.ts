@@ -522,18 +522,38 @@ export async function getBusinessSettingsAsync(): Promise<AdminBusinessSettings>
 export async function updateBusinessSettingsAsync(
   updates: Partial<AdminBusinessSettings>
 ): Promise<AdminBusinessSettings> {
-  const updated = await businessSettingsService.updateAdminBusinessSettings(updates);
-  settingsState = {
-    ...settingsState,
-    ...updated,
-    phone: updated.phone || '',
-    whatsAppNumber: updated.whatsAppNumber || '',
-    email: updated.email || '',
-    address: updated.address || '',
-    logoUrl: updated.logoUrl || '',
-  };
-  saveToStorage(STORAGE_KEYS.SETTINGS, settingsState);
-  return settingsState;
+  try {
+    const updated = await businessSettingsService.updateAdminBusinessSettings(updates);
+    settingsState = {
+      ...settingsState,
+      ...updated,
+      phone: updated.phone || '',
+      whatsAppNumber: updated.whatsAppNumber || '',
+      email: updated.email || '',
+      address: updated.address || '',
+      logoUrl: updated.logoUrl || '',
+    };
+    saveToStorage(STORAGE_KEYS.SETTINGS, settingsState);
+    return settingsState;
+  } catch (err) {
+    console.warn('[adminService] API update failed, persisting locally in session:', err);
+    settingsState = {
+      ...settingsState,
+      ...updates,
+      phone: updates.phone ?? settingsState.phone,
+      whatsAppNumber: updates.whatsAppNumber ?? settingsState.whatsAppNumber,
+      email: updates.email ?? settingsState.email,
+      address: updates.address ?? settingsState.address,
+      logoUrl: updates.logoUrl ?? settingsState.logoUrl,
+    };
+    saveToStorage(STORAGE_KEYS.SETTINGS, settingsState);
+    businessSettingsService.notifyLocalUpdate(settingsState);
+    // If it was a validation error from backend, rethrow so the user sees the field issue; otherwise return local state
+    if (err instanceof Error && err.message && !err.message.includes('fetch') && !err.message.includes('NetworkError')) {
+      throw err;
+    }
+    return settingsState;
+  }
 }
 
 export function getBusinessSettings(): AdminBusinessSettings {

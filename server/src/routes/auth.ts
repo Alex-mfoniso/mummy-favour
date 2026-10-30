@@ -3,7 +3,8 @@ import { authController } from '../controllers/auth.controller.js';
 import { validateRequest } from '../middleware/validateRequest.js';
 import { loginRateLimiter } from '../middleware/rateLimiter.js';
 import { verifyCsrf } from '../middleware/csrf.js';
-import { loginSchema } from '../schemas/auth.schema.js';
+import { requireAuth } from '../middleware/auth.js';
+import { loginSchema, updateProfileSchema } from '../schemas/auth.schema.js';
 
 export const authRouter = Router();
 
@@ -30,6 +31,18 @@ authRouter.post('/logout', verifyCsrf, authController.logout);
  * Retrieves current authenticated administrator profile.
  */
 authRouter.get('/me', authController.me);
+
+/**
+ * PATCH /api/v1/auth/profile
+ * Allows authenticated administrator to update their own display name or email.
+ */
+authRouter.patch(
+  '/profile',
+  requireAuth,
+  verifyCsrf,
+  validateRequest({ body: updateProfileSchema }),
+  authController.updateProfile
+);
 
 /**
  * GET /api/v1/auth/csrf

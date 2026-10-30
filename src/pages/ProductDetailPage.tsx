@@ -37,7 +37,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const whatsAppNumber = settings.whatsAppNumber || '2348134726113';
   const whatsAppQuoteUrl = product
-    ? buildWhatsAppUrl(whatsAppNumber, generateProductWhatsAppQuoteMessage(product.title, product.category))
+    ? buildWhatsAppUrl(whatsAppNumber, generateProductWhatsAppQuoteMessage(product.title, product.category, settings.businessName))
     : null;
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from '../services/auth.service.js';
+import { adminUserService } from '../services/adminUser.service.js';
 import { generateCsrfToken } from '../middleware/csrf.js';
 
 export class AuthController {
@@ -115,6 +116,42 @@ export class AuthController {
         data: {
           user,
           csrfToken: req.session.csrfToken,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * PATCH /api/v1/auth/profile
+   * Allows authenticated administrator to update their own display name or email.
+   */
+  public async updateProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = req.session?.adminUserId;
+      if (!userId) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'UNAUTHORIZED',
+            message: 'Not authenticated.',
+          },
+        });
+        return;
+      }
+
+      const { name, email } = req.body;
+      const meta = {
+        ipAddress: req.ip,
+        userAgent: req.get('user-agent'),
+      };
+
+      const updated = await adminUserService.updateUser(userId, { name, email }, userId, meta);
+      res.status(200).json({
+        success: true,
+        data: {
+          user: updated,
         },
       });
     } catch (error) {

@@ -103,10 +103,12 @@ export function formatUnitLabel(unit: string): string {
 /**
  * Construct professional contact enquiry message for WhatsApp handoff
  */
-export function generateContactMessage(form: ContactFormState): string {
+export function generateContactMessage(form: ContactFormState, businessName?: string): string {
+  const brand = (businessName || SITE_CONFIG.name || 'Divine Favour').toUpperCase();
+  const brandNormal = businessName || SITE_CONFIG.name || 'Divine Favour';
   const parts: string[] = [];
 
-  parts.push('*DIVINE FAVOUR | GENERAL BUSINESS ENQUIRY*');
+  parts.push(`*${brand} | GENERAL BUSINESS ENQUIRY*`);
   parts.push('----------------------------------------');
   parts.push(`• Topic: ${formatContactTopicLabel(form.topic)}`);
   parts.push(`• From: ${form.fullName.trim()}`);
@@ -118,7 +120,7 @@ export function generateContactMessage(form: ContactFormState): string {
   parts.push('*Message / Enquiry Details:*');
   parts.push(form.message.trim());
   parts.push('----------------------------------------');
-  parts.push('_Sent via Divine Favour Website Contact Form_');
+  parts.push(`_Sent via ${brandNormal} Website Contact Form_`);
 
   return parts.join('\n');
 }
@@ -130,15 +132,18 @@ export function generateQuotationMessage(
   form: QuoteFormState,
   productTitle?: string,
   productCategory?: string,
-  reference?: string
+  reference?: string,
+  businessName?: string
 ): string {
+  const brand = (businessName || SITE_CONFIG.name || 'Divine Favour').toUpperCase();
+  const brandNormal = businessName || SITE_CONFIG.name || 'Divine Favour';
   const parts: string[] = [];
   const isCustomMode = form.mode === 'custom';
 
   if (isCustomMode) {
-    parts.push('*DIVINE FAVOUR | CUSTOM PACKAGING REQUIREMENT*');
+    parts.push(`*${brand} | CUSTOM PACKAGING REQUIREMENT*`);
   } else {
-    parts.push('*DIVINE FAVOUR | PACKAGING QUOTATION ENQUIRY*');
+    parts.push(`*${brand} | PACKAGING QUOTATION ENQUIRY*`);
   }
   if (reference) {
     parts.push(`*Enquiry Reference:* ${reference}`);
@@ -206,8 +211,8 @@ export function generateQuotationMessage(
   }
 
   parts.push('----------------------------------------');
-  parts.push('Hello Divine Favour sales desk, please review my specifications above for quotation.');
-  parts.push('_Sent via Divine Favour Website Quotation Builder_');
+  parts.push(`Hello ${brandNormal} sales desk, please review my specifications above for quotation.`);
+  parts.push(`_Sent via ${brandNormal} Website Quotation Builder_`);
 
   return parts.join('\n');
 }
@@ -215,24 +220,29 @@ export function generateQuotationMessage(
 /**
  * Generate complete structured quotation message from confirmation record
  */
-export function generateConfirmationWhatsAppMessage(confirmation: {
-  reference: string;
-  customerName: string;
-  customerPhone?: string;
-  customerEmail?: string;
-  customerMessage?: string;
-  items?: Array<{
-    productName?: string;
-    quantity?: number;
-    unit?: string;
-    size?: string;
-    gauge?: string;
-    color?: string;
-    customPrinting?: string;
-  }>;
-}): string {
+export function generateConfirmationWhatsAppMessage(
+  confirmation: {
+    reference: string;
+    customerName: string;
+    customerPhone?: string;
+    customerEmail?: string;
+    customerMessage?: string;
+    items?: Array<{
+      productName?: string;
+      quantity?: number;
+      unit?: string;
+      size?: string;
+      gauge?: string;
+      color?: string;
+      customPrinting?: string;
+    }>;
+  },
+  businessName?: string
+): string {
+  const brand = (businessName || SITE_CONFIG.name || 'Divine Favour').toUpperCase();
+  const brandNormal = businessName || SITE_CONFIG.name || 'Divine Favour';
   const parts: string[] = [];
-  parts.push('*DIVINE FAVOUR | OFFICIAL QUOTATION REQUEST*');
+  parts.push(`*${brand} | OFFICIAL QUOTATION REQUEST*`);
   parts.push(`*Enquiry Reference:* ${confirmation.reference}`);
   parts.push('----------------------------------------');
   parts.push('*1. Customer Details:*');
@@ -275,8 +285,8 @@ export function generateConfirmationWhatsAppMessage(confirmation: {
   }
 
   parts.push('----------------------------------------');
-  parts.push('Hello Divine Favour sales desk, I submitted this quotation enquiry on your website and would like to finalize pricing and delivery.');
-  parts.push('_Sent via Divine Favour Quotation Portal_');
+  parts.push(`Hello ${brandNormal} sales desk, I submitted this quotation enquiry on your website and would like to finalize pricing and delivery.`);
+  parts.push(`_Sent via ${brandNormal} Quotation Portal_`);
 
   return parts.join('\n');
 }
@@ -284,15 +294,21 @@ export function generateConfirmationWhatsAppMessage(confirmation: {
 /**
  * Generate quick product enquiry message for WhatsApp
  */
-export function generateProductWhatsAppQuoteMessage(productTitle: string, category?: string): string {
+export function generateProductWhatsAppQuoteMessage(
+  productTitle: string, 
+  category?: string, 
+  businessName?: string
+): string {
+  const brand = (businessName || SITE_CONFIG.name || 'Divine Favour').toUpperCase();
+  const brandNormal = businessName || SITE_CONFIG.name || 'Divine Favour';
   const parts: string[] = [];
-  parts.push('*DIVINE FAVOUR | PRODUCT QUOTATION ENQUIRY*');
+  parts.push(`*${brand} | PRODUCT QUOTATION ENQUIRY*`);
   parts.push('----------------------------------------');
   parts.push(`• Selected Product: ${productTitle}${category ? ` (${category})` : ''}`);
   parts.push('');
-  parts.push('Hello Divine Favour sales team, I would like to request an official quotation for this product. Please share current bulk pricing, gauge options, and delivery timelines.');
+  parts.push(`Hello ${brandNormal} sales team, I would like to request an official quotation for this product. Please share current bulk pricing, gauge options, and delivery timelines.`);
   parts.push('----------------------------------------');
-  parts.push('_Sent via Divine Favour Website Catalogue_');
+  parts.push(`_Sent via ${brandNormal} Website Catalogue_`);
   return parts.join('\n');
 }
 

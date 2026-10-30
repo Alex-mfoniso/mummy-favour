@@ -82,4 +82,12 @@ export const authService = {
       return null;
     }
   },
+
+  /**
+   * Update authenticated administrator's display name or email.
+   */
+  async updateProfile(data: { name?: string; email?: string }): Promise<AdminUser> {
+    const res = await apiClient.patch<{ user: AdminUser }>('/auth/profile', data);
+    return res.data.user;
+  },
 };

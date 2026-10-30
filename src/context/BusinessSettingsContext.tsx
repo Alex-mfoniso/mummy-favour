@@ -43,7 +43,20 @@ export const BusinessSettingsProvider: React.FC<{ children: React.ReactNode }> =
   const [error, setError] = useState<string | null>(null);
 
   const syncSiteConfig = useCallback((data: PublicBusinessSettings) => {
-    if (data.businessName) SITE_CONFIG.name = data.businessName;
+    if (data.businessName) {
+      SITE_CONFIG.name = data.businessName;
+      if (typeof document !== 'undefined') {
+        const titleSuffix = data.tagline ? ` | ${data.tagline}` : '';
+        if (
+          window.location.pathname === '/' ||
+          !document.title ||
+          document.title.includes('Divine Favour') ||
+          document.title.includes('Mummy Favour')
+        ) {
+          document.title = `${data.businessName}${titleSuffix}`;
+        }
+      }
+    }
     if (data.tagline) SITE_CONFIG.tagline = data.tagline;
     if (data.phone) SITE_CONFIG.phone = data.phone;
     if (data.whatsAppNumber) SITE_CONFIG.whatsAppNumber = data.whatsAppNumber;

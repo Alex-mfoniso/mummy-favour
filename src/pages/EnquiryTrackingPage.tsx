@@ -56,13 +56,15 @@ export const EnquiryTrackingPage: React.FC = () => {
     }
   }, []);
 
+  const brandName = settings.businessName || 'Divine Favour';
+
   useEffect(() => {
-    document.title = 'Track Enquiry Status | Divine Favour Packaging';
+    document.title = `Track Enquiry Status | ${brandName}`;
     if (tokenFromUrl) {
       setInputToken(tokenFromUrl);
       fetchTracking(tokenFromUrl);
     }
-  }, [tokenFromUrl, fetchTracking]);
+  }, [tokenFromUrl, fetchTracking, brandName]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,7 +84,7 @@ export const EnquiryTrackingPage: React.FC = () => {
   // Build WhatsApp follow-up URL
   const whatsAppNumber = settings.whatsAppNumber || '2348134726113';
   const whatsAppMessage = trackingData
-    ? `Hello Divine Favour, I am tracking my packaging enquiry with reference: ${trackingData.reference}.\nCurrent status is: ${trackingData.statusTitle}.\nCould you please provide an update on this?`
+    ? `Hello ${brandName}, I am tracking my packaging enquiry with reference: ${trackingData.reference}.\nCurrent status is: ${trackingData.statusTitle}.\nCould you please provide an update on this?`
     : '';
   const whatsAppUrl = isWhatsAppConfigured && trackingData
     ? buildWhatsAppUrl(whatsAppNumber, whatsAppMessage)
@@ -94,7 +96,7 @@ export const EnquiryTrackingPage: React.FC = () => {
     ? `mailto:${contactEmail}?subject=${encodeURIComponent(
         `Status Follow-up: Enquiry [${trackingData.reference}]`
       )}&body=${encodeURIComponent(
-        `Dear Divine Favour Sales Desk,\n\nI am inquiring about the status of my enquiry reference ${trackingData.reference}.\n\nStatus displayed: ${trackingData.statusTitle}\n\nPlease let me know if any additional details are required.\n\nThank you.`
+        `Dear ${brandName} Sales Desk,\n\nI am inquiring about the status of my enquiry reference ${trackingData.reference}.\n\nStatus displayed: ${trackingData.statusTitle}\n\nPlease let me know if any additional details are required.\n\nThank you.`
       )}`
     : null;
 
@@ -172,7 +174,7 @@ export const EnquiryTrackingPage: React.FC = () => {
                 Retrieving enquiry tracking details...
               </p>
               <p className="text-xs text-[#5C635F]">
-                Validating cryptographic access credential with Divine Favour records.
+                Validating cryptographic access credential with {brandName} records.
               </p>
             </div>
           )}
@@ -194,7 +196,7 @@ export const EnquiryTrackingPage: React.FC = () => {
               
               <div className="pt-2 text-xs text-[#5C635F] border-t border-[#E6E4DD] max-w-md mx-auto">
                 <p>
-                  If you do not have your tracking key, you can reach out directly to Divine Favour quoting your customer reference number (e.g. <code>DF-XXXXXX</code>).
+                  If you do not have your tracking key, you can reach out directly to {brandName} quoting your customer reference number (e.g. <code>DF-XXXXXX</code>).
                 </p>
               </div>
             </div>
@@ -369,7 +371,7 @@ export const EnquiryTrackingPage: React.FC = () => {
                 <div className="p-3 bg-[#FAF9F6] border border-[#E6E4DD] rounded-lg text-xs text-[#5C635F] flex items-start gap-2">
                   <ShieldCheck className="w-4 h-4 text-[#246B45] shrink-0 mt-0.5" />
                   <p className="leading-relaxed">
-                    <strong>Note:</strong> A quotation in preparation is an engineering estimate and not a confirmed production invoice. Final pricing and delivery schedules will be formally communicated by Divine Favour representatives.
+                    <strong>Note:</strong> A quotation in preparation is an engineering estimate and not a confirmed production invoice. Final pricing and delivery schedules will be formally communicated by {brandName} representatives.
                   </p>
                 </div>
               </div>
@@ -458,7 +460,7 @@ export const EnquiryTrackingPage: React.FC = () => {
                         </div>
                       </div>
                       <p className="text-[11px] text-[#5C635F] pt-1 italic">
-                        * In accordance with Divine Favour transport policy, goods held at destination park will be cleared for release once the 50% final balance is verified.
+                        * In accordance with {brandName} transport policy, goods held at destination park will be cleared for release once the 50% final balance is verified.
                       </p>
                     </div>
                   )}

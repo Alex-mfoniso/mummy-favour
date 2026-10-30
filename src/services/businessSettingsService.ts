@@ -182,6 +182,37 @@ class BusinessSettingsService {
       throw err;
     }
   }
+
+  /**
+   * Broadcast local / fallback update immediately to reactive frontend subscribers.
+   */
+  public notifyLocalUpdate(updated: Partial<AdminBusinessSettings>): void {
+    const current = this.cachedSettings || FALLBACK_PUBLIC_SETTINGS;
+    const merged: PublicBusinessSettings = {
+      ...current,
+      businessName: updated.businessName || current.businessName,
+      tagline: updated.tagline || current.tagline,
+      shortDescription: updated.shortDescription !== undefined ? updated.shortDescription : current.shortDescription,
+      fullDescription: updated.fullDescription !== undefined ? updated.fullDescription : current.fullDescription,
+      logoUrl: updated.logoUrl !== undefined ? updated.logoUrl : current.logoUrl,
+      email: updated.email !== undefined ? updated.email : current.email,
+      publicEmail: updated.email !== undefined ? updated.email : current.publicEmail,
+      phone: updated.phone !== undefined ? updated.phone : current.phone,
+      publicPhone: updated.phone !== undefined ? updated.phone : current.publicPhone,
+      whatsAppNumber: updated.whatsAppNumber !== undefined ? updated.whatsAppNumber : current.whatsAppNumber,
+      publicWhatsApp: updated.whatsAppNumber !== undefined ? updated.whatsAppNumber : current.publicWhatsApp,
+      address: updated.address !== undefined ? updated.address : current.address,
+      businessAddress: updated.address !== undefined ? updated.address : current.businessAddress,
+      businessHours: updated.businessHours !== undefined ? updated.businessHours : current.businessHours,
+      socialLinks: updated.socialLinks !== undefined ? (updated.socialLinks as any) : current.socialLinks,
+      metaTitle: updated.metaTitle !== undefined ? updated.metaTitle : current.metaTitle,
+      metaDescription: updated.metaDescription !== undefined ? updated.metaDescription : current.metaDescription,
+      quoteInstructions: updated.quoteInstructions !== undefined ? updated.quoteInstructions : current.quoteInstructions,
+      publicAnnouncement: updated.publicAnnouncement !== undefined ? updated.publicAnnouncement : current.publicAnnouncement,
+      updatedAt: new Date().toISOString(),
+    };
+    this.notifyListeners(merged);
+  }
 }
 
 export const businessSettingsService = new BusinessSettingsService();

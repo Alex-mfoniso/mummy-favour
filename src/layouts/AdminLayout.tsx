@@ -17,10 +17,14 @@ import {
   Loader2,
   Users,
   ShieldAlert,
-  ShoppingBag
+  ShoppingBag,
+  Edit3,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 import { useAuth } from '@/context/AuthContext';
+import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { PageTransition } from '@/components/layout/PageTransition';
 
@@ -36,7 +40,21 @@ export const AdminLayout: React.FC = () => {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
+  const { settings } = useBusinessSettings();
+
+  // Profile edit modal state
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileSuccessNotice, setProfileSuccessNotice] = useState<string | null>(null);
+
+  // Synchronize document title with dynamic business name
+  useEffect(() => {
+    document.title = `Admin Console | ${settings.businessName}`;
+  }, [settings.businessName]);
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -46,17 +64,18 @@ export const AdminLayout: React.FC = () => {
   // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && mobileMenuOpen) {
-        setMobileMenuOpen(false);
+      if (e.key === 'Escape') {
+        if (isProfileModalOpen) setIsProfileModalOpen(false);
+        if (mobileMenuOpen) setMobileMenuOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, isProfileModalOpen]);
 
   // Body scroll lock
   useEffect(() => {
-    if (mobileMenuOpen) {
+    if (mobileMenuOpen || isProfileModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -64,7 +83,37 @@ export const AdminLayout: React.FC = () => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, isProfileModalOpen]);
+
+  const handleOpenProfile = () => {
+    setProfileName(user?.name || '');
+    setProfileEmail(user?.email || '');
+    setProfileError(null);
+    setIsProfileModalOpen(true);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profileName.trim()) {
+      setProfileError('Display name cannot be empty.');
+      return;
+    }
+    try {
+      setIsSavingProfile(true);
+      setProfileError(null);
+      await updateProfile({
+        name: profileName.trim(),
+        email: profileEmail.trim() || undefined,
+      });
+      setIsProfileModalOpen(false);
+      setProfileSuccessNotice(`Admin profile updated. Name set to "${profileName.trim()}".`);
+      setTimeout(() => setProfileSuccessNotice(null), 4000);
+    } catch (err: any) {
+      setProfileError(err?.message || 'Failed to update profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -187,7 +236,7 @@ export const AdminLayout: React.FC = () => {
         <aside className="hidden lg:flex w-64 bg-white border-r border-[#E6E4DD] flex-col justify-between shrink-0">
           <div className="p-6 space-y-6">
             <div>
-              <Logo size="sm" withLink={false} />
+              <Logo size="sm" withLink={false} businessName={settings.businessName} logoUrl={settings.logoUrl || undefined} />
               <div className="mt-2 text-[10px] font-bold uppercase tracking-wider text-[#88918C]">
                 ADMINISTRATION WORKSPACE
               </div>
@@ -273,11 +322,19 @@ export const AdminLayout: React.FC = () => {
 
             {/* Authenticated User Account Menu & Logout */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#FAF9F6] border border-[#E6E4DD]">
-                <UserCircle2 className="w-4 h-4 text-[#246B45]" />
+              <button
+                type="button"
+                onClick={handleOpenProfile}
+                title="Click to change your display name or account profile"
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-[#FAF9F6] border border-[#E6E4DD] hover:border-[#246B45] hover:bg-emerald-50/50 transition-colors text-left cursor-pointer group focus:outline-none focus:ring-2 focus:ring-[#246B45]/30"
+              >
+                <UserCircle2 className="w-4 h-4 text-[#246B45] group-hover:scale-105 transition-transform" />
                 <div className="text-left hidden sm:block">
-                  <div className="text-xs font-bold text-[#252A27]">
-                    {user?.name || 'Administrator'}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#252A27] group-hover:text-[#246B45] transition-colors">
+                      {user?.name || 'Administrator'}
+                    </span>
+                    <Edit3 className="w-3 h-3 text-[#88918C] opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <div className="text-[10px] text-[#88918C] -mt-0.5">
                     {user?.email || 'admin@divinefavour.com'}
@@ -286,7 +343,7 @@ export const AdminLayout: React.FC = () => {
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#246B45]/10 text-[#246B45]">
                   {user?.role || 'ADMIN'}
                 </span>
-              </div>
+              </button>
 
               <button
                 type="button"
@@ -304,6 +361,23 @@ export const AdminLayout: React.FC = () => {
               </button>
             </div>
           </header>
+
+          {/* Toast Notification Banner */}
+          {profileSuccessNotice && (
+            <div className="bg-emerald-50 border-b border-emerald-200 px-6 py-2.5 text-xs text-emerald-800 flex items-center justify-between animate-fadeIn">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="font-medium">{profileSuccessNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setProfileSuccessNotice(null)}
+                className="text-emerald-700 hover:text-emerald-900 p-0.5 rounded"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
 
           {/* Page Content Outlet with animated transition */}
           <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
@@ -335,7 +409,7 @@ export const AdminLayout: React.FC = () => {
           <div className="relative w-72 bg-white flex flex-col justify-between p-6 z-10 shadow-2xl animate-in slide-in-from-left duration-200">
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <Logo size="sm" withLink={false} />
+                <Logo size="sm" withLink={false} businessName={settings.businessName} logoUrl={settings.logoUrl || undefined} />
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -372,14 +446,24 @@ export const AdminLayout: React.FC = () => {
             </div>
 
             <div className="pt-6 border-t border-[#E6E4DD] space-y-3">
-              <div className="p-3 bg-[#FAF9F6] border border-[#E6E4DD] rounded-lg">
-                <div className="text-xs font-bold text-[#252A27] truncate">
-                  {user?.name || 'Administrator'}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleOpenProfile();
+                }}
+                className="w-full text-left p-3 bg-[#FAF9F6] border border-[#E6E4DD] rounded-lg hover:border-[#246B45] hover:bg-emerald-50/50 transition-colors group cursor-pointer"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-bold text-[#252A27] truncate group-hover:text-[#246B45]">
+                    {user?.name || 'Administrator'}
+                  </div>
+                  <Edit3 className="w-3.5 h-3.5 text-[#88918C] group-hover:text-[#246B45]" />
                 </div>
                 <div className="text-[11px] text-[#5C635F] truncate">
                   {user?.email || 'admin@divinefavour.com'}
                 </div>
-              </div>
+              </button>
 
               <button
                 type="button"
@@ -399,6 +483,97 @@ export const AdminLayout: React.FC = () => {
                 <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
               </Link>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL: EDIT ADMIN USER PROFILE / CHANGE NAME
+          ========================================================================= */}
+      {isProfileModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-[#E2E0D8] space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E2E0D8]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#EAF3ED] text-[#246B45] flex items-center justify-center">
+                  <UserCircle2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-[#252A27]">Edit Admin Profile</h3>
+                  <p className="text-xs text-[#5C645F]">Update your display name and email address</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsProfileModalOpen(false)}
+                className="text-[#88918C] hover:text-[#252A27] p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {profileError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{profileError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProfile} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#252A27] mb-1.5">
+                  Your Full Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={profileName}
+                  onChange={(e) => setProfileName(e.target.value)}
+                  placeholder="e.g. Alex Mfoniso or Mummy Favour"
+                  className="w-full px-3 py-2 text-sm border border-[#D5D3C8] rounded-lg focus:outline-none focus:border-[#246B45] focus:ring-1 focus:ring-[#246B45]"
+                  autoFocus
+                />
+                <p className="text-[11px] text-[#88918C] mt-1">
+                  This name is displayed in the admin console header and user management.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#252A27] mb-1.5">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  value={profileEmail}
+                  onChange={(e) => setProfileEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  className="w-full px-3 py-2 text-sm border border-[#D5D3C8] rounded-lg focus:outline-none focus:border-[#246B45] focus:ring-1 focus:ring-[#246B45]"
+                />
+              </div>
+
+              <div className="pt-2 text-xs text-[#5C645F] bg-[#FAF9F6] p-3 rounded-md border border-[#E6E4DD]">
+                <span className="font-semibold text-[#252A27] block mb-0.5">Looking to change the business/store name?</span>
+                Go to <Link to="/admin/settings" onClick={() => setIsProfileModalOpen(false)} className="text-[#246B45] font-semibold underline">Business Settings</Link> to change the company name displayed on the public website, quotes, and WhatsApp.
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-[#E2E0D8]">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileModalOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-[#5C645F] hover:bg-[#F5F4EF] rounded-lg transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProfile}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-[#246B45] hover:bg-[#1B5234] rounded-lg transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {isSavingProfile && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Save Profile Changes
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

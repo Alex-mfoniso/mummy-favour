@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Copy, Check, MessageSquare, AlertCircle, PhoneCall } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 
 export interface WhatsAppNoticeProps {
   isConfigured: boolean;
@@ -14,7 +15,9 @@ export const WhatsAppNotice: React.FC<WhatsAppNoticeProps> = ({
   formattedMessage = '',
   className = '',
 }) => {
+  const { settings } = useBusinessSettings();
   const [copied, setCopied] = useState(false);
+  const brandName = settings.businessName || 'Our order desk';
 
   const handleCopy = async () => {
     if (!formattedMessage) return;
@@ -40,7 +43,7 @@ export const WhatsAppNotice: React.FC<WhatsAppNoticeProps> = ({
               WhatsApp Direct Channel Pending Business Line Configuration
             </h4>
             <p className="text-xs text-[#5C635F] leading-relaxed">
-              Divine Favour has not yet published an automated business WhatsApp number for direct web dispatch in this environment. To ensure you do not lose your entered specifications, you can copy your formatted enquiry text below or contact us through our official channels.
+              {brandName} has not yet published an automated business WhatsApp number for direct web dispatch in this environment. To ensure you do not lose your entered specifications, you can copy your formatted enquiry text below or contact us through our official channels.
             </p>
           </div>
         </div>

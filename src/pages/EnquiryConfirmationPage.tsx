@@ -29,7 +29,8 @@ export const EnquiryConfirmationPage: React.FC = () => {
   const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
-    document.title = 'Enquiry Received | Divine Favour Packaging';
+    const brand = settings.businessName || 'Divine Favour Packaging';
+    document.title = `Enquiry Received | ${brand}`;
 
     // 1. Try to read from location.state
     const stateData = (location.state as { confirmation?: PublicEnquiryConfirmation })?.confirmation;
@@ -52,7 +53,7 @@ export const EnquiryConfirmationPage: React.FC = () => {
     } catch {
       // Ignore
     }
-  }, [location.state]);
+  }, [location.state, settings.businessName]);
 
   const handleCopyReference = () => {
     if (!confirmation?.reference) return;
@@ -70,9 +71,10 @@ export const EnquiryConfirmationPage: React.FC = () => {
   };
 
   // Build structured WhatsApp quotation message and safe URL
+  const brandName = settings.businessName || 'Divine Favour';
   const whatsAppNumber = settings.whatsAppNumber || '2348134726113';
   const whatsAppFormattedMessage = confirmation
-    ? generateConfirmationWhatsAppMessage(confirmation)
+    ? generateConfirmationWhatsAppMessage(confirmation, brandName)
     : '';
   const whatsAppUrl = confirmation && isWhatsAppConfigured
     ? buildWhatsAppUrl(whatsAppNumber, whatsAppFormattedMessage)
@@ -82,9 +84,9 @@ export const EnquiryConfirmationPage: React.FC = () => {
   const contactEmail = settings.publicEmail || settings.email;
   const emailMailto = hasEmail && contactEmail
     ? `mailto:${contactEmail}?subject=${encodeURIComponent(
-        `Follow-up: Packaging Enquiry [${confirmation?.reference || 'Divine Favour'}]`
+        `Follow-up: Packaging Enquiry [${confirmation?.reference || brandName}]`
       )}&body=${encodeURIComponent(
-        `Dear Divine Favour Sales Team,\n\nI recently submitted a packaging enquiry with reference number ${confirmation?.reference || ''}.\n\nCustomer: ${confirmation?.customerName || ''}\n\nI would appreciate an update on my specifications and pricing estimate.\n\nThank you.`
+        `Dear ${brandName} Sales Team,\n\nI recently submitted a packaging enquiry with reference number ${confirmation?.reference || ''}.\n\nCustomer: ${confirmation?.customerName || ''}\n\nI would appreciate an update on my specifications and pricing estimate.\n\nThank you.`
       )}`
     : null;
 

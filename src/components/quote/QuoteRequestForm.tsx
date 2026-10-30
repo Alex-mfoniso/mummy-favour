@@ -33,6 +33,7 @@ import {
   formatPackagingTypeLabel
 } from '@/lib/whatsapp';
 import { enquiryService, PublicEnquiryConfirmation } from '@/services/enquiryService';
+import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 
 export interface QuoteRequestFormProps {
   products: Product[];
@@ -50,6 +51,7 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
   className = '',
 }) => {
   const navigate = useNavigate();
+  const { settings } = useBusinessSettings();
   const [copiedRef, setCopiedRef] = useState(false);
 
   // Mode: 'standard' or 'custom'
@@ -224,7 +226,8 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         formData,
         mode === 'standard' ? selectedProduct?.title : undefined,
         mode === 'standard' ? selectedProduct?.category : undefined,
-        confirmation.reference
+        confirmation.reference,
+        settings.businessName
       );
       setGeneratedMessage(enrichedMsg);
 
@@ -246,7 +249,9 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         const fallbackMsg = generateQuotationMessage(
           formData,
           mode === 'standard' ? selectedProduct?.title : undefined,
-          mode === 'standard' ? selectedProduct?.category : undefined
+          mode === 'standard' ? selectedProduct?.category : undefined,
+          undefined,
+          settings.businessName
         );
         const url = generateWhatsAppUrl(fallbackMsg);
         if (url) {

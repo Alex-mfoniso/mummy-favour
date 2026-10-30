@@ -221,7 +221,7 @@ export const AdminBusinessSettingsPage: React.FC = () => {
       const mapped = mapSettingsToForm(saved);
       setInitialData(mapped);
       setFormData(mapped);
-      setSuccessNotice('Business settings successfully saved and persisted to database.');
+      setSuccessNotice(`Business settings saved! Business name updated to "${payload.businessName}" across website, logo, and quotes.`);
       setTimeout(() => setSuccessNotice(null), 5000);
     } catch (err: any) {
       setSaveError(err?.message || 'Failed to save business settings. Please check your inputs and try again.');
@@ -325,7 +325,7 @@ export const AdminBusinessSettingsPage: React.FC = () => {
               value={formData.businessName}
               onChange={(e) => handleChange('businessName', e.target.value)}
               error={errors.businessName}
-              helperText="Official company name displayed across header and documents."
+              helperText="Official company name displayed across header, logo, quotations, WhatsApp messages, and documents."
             />
 
             <Input

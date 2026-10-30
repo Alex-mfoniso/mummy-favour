@@ -28,9 +28,11 @@ import {
   formatContactTopicLabel
 } from '@/lib/whatsapp';
 import { enquiryService, PublicEnquiryConfirmation } from '@/services/enquiryService';
+import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 
 export const ContactForm: React.FC<{ className?: string }> = ({ className = '' }) => {
   const navigate = useNavigate();
+  const { settings } = useBusinessSettings();
   const [copiedRef, setCopiedRef] = useState(false);
 
   const [formData, setFormData] = useState<ContactFormState>({
@@ -126,7 +128,7 @@ export const ContactForm: React.FC<{ className?: string }> = ({ className = '' }
         sessionStorage.setItem('df_last_enquiry_confirmation', JSON.stringify(confirmation));
       } catch {}
 
-      const baseMsg = generateContactMessage(formData);
+      const baseMsg = generateContactMessage(formData, settings.businessName);
       const enrichedMsg = `*Enquiry Reference: ${confirmation.reference}*\n\n${baseMsg}`;
       setGeneratedMessage(enrichedMsg);
 
@@ -205,7 +207,7 @@ export const ContactForm: React.FC<{ className?: string }> = ({ className = '' }
               Message Received
             </h3>
             <p className="text-xs sm:text-sm text-[#5C635F] leading-relaxed">
-              {confirmationData.message || 'Thank you for reaching out to Divine Favour. Your enquiry has been received and routed to our team.'}
+              {confirmationData.message || `Thank you for reaching out to ${settings.businessName || 'Divine Favour'}. Your enquiry has been received and routed to our team.`}
             </p>
           </div>
 

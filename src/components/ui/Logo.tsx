@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { SITE_CONFIG } from '@/config/site';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -16,9 +17,11 @@ export const Logo: React.FC<LogoProps> = ({
   withLink = true,
   withSubtitle = true,
   className,
-  businessName = 'DIVINE FAVOUR',
+  businessName,
   logoUrl,
 }) => {
+  const resolvedName = businessName || SITE_CONFIG.name || 'DIVINE FAVOUR';
+
   const iconSizes = {
     sm: 'w-7 h-7',
     md: 'w-9 h-9',
@@ -42,7 +45,7 @@ export const Logo: React.FC<LogoProps> = ({
       {logoUrl ? (
         <img
           src={logoUrl}
-          alt={businessName}
+          alt={resolvedName}
           className={cn('object-contain rounded', iconSizes[size])}
         />
       ) : (
@@ -97,7 +100,7 @@ export const Logo: React.FC<LogoProps> = ({
             titleSizes[size]
           )}
         >
-          {businessName}
+          {resolvedName}
         </span>
         {withSubtitle && (
           <span
@@ -118,7 +121,7 @@ export const Logo: React.FC<LogoProps> = ({
       <Link
         to="/"
         className="inline-flex items-center focus-visible:outline-2 focus-visible:outline-[#246B45] focus-visible:outline-offset-4 rounded-md"
-        aria-label="Divine Favour - Home"
+        aria-label={`${resolvedName} - Home`}
       >
         {Content}
       </Link>
