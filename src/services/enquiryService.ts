@@ -389,12 +389,19 @@ export const enquiryService = {
       });
       return res.data;
     } catch (err) {
+      const now = new Date().toISOString();
       const newNote: AdminEnquiryNote = {
         id: `note-${Date.now()}`,
         enquiryId,
         content,
-        authorName: 'Divine Admin',
-        createdAt: new Date().toISOString(),
+        author: {
+          id: '30ba9b8a-f611-4960-afe4-6edd460c6c62',
+          name: 'Divine Admin',
+          email: 'admin@divinefavour.com',
+          role: 'SUPER_ADMIN',
+        },
+        createdAt: now,
+        updatedAt: now,
       };
       const list = getStoredEnquiries();
       const index = list.findIndex((e) => e.id === enquiryId || e.reference === enquiryId);
@@ -435,8 +442,14 @@ export const enquiryService = {
         id: noteId,
         enquiryId,
         content,
-        authorName: 'Divine Admin',
+        author: {
+          id: '30ba9b8a-f611-4960-afe4-6edd460c6c62',
+          name: 'Divine Admin',
+          email: 'admin@divinefavour.com',
+          role: 'SUPER_ADMIN',
+        },
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
     }
   },
