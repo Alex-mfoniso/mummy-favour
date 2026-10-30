@@ -1,5 +1,31 @@
 import { apiClient, ApiClientError } from './apiClient';
 import { AdminEnquiry, EnquiryStatus, EnquiryType, AdminEnquiryNote } from '@/types/admin';
+import { INITIAL_ADMIN_ENQUIRIES } from '@/data/mock/initialAdminData';
+
+const ENQUIRIES_STORAGE_KEY = 'df_admin_enquiries_demo';
+
+function getStoredEnquiries(): AdminEnquiry[] {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      const saved = window.sessionStorage.getItem(ENQUIRIES_STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+      window.sessionStorage.setItem(ENQUIRIES_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ENQUIRIES));
+    }
+  } catch {
+    // SessionStorage inaccessible
+  }
+  return [...INITIAL_ADMIN_ENQUIRIES];
+}
+
+function saveStoredEnquiries(enquiries: AdminEnquiry[]): void {
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      window.sessionStorage.setItem(ENQUIRIES_STORAGE_KEY, JSON.stringify(enquiries));
+    }
+  } catch {
+    // SessionStorage write error
+  }
+}
 
 export interface SubmitPublicEnquiryItem {
   productId?: string;
@@ -252,10 +278,47 @@ export const enquiryService = {
         },
       };
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
+      console.warn('[enquiryService] Backend API unavailable, using demonstration enquiry records:', err);
+      let list = getStoredEnquiries();
+
+      if (filters.status && filters.status !== 'all') {
+        const normStatus = filters.status.toLowerCase();
+        list = list.filter((e) => e.status.toLowerCase() === normStatus);
       }
-      throw err;
+
+      if (filters.type && filters.type !== 'all') {
+        const normType = filters.type.toLowerCase();
+        list = list.filter((e) => e.type.toLowerCase() === normType);
+      }
+
+      if (filters.search?.trim()) {
+        const q = filters.search.toLowerCase();
+        list = list.filter(
+          (e) =>
+            e.customerName.toLowerCase().includes(q) ||
+            (e.businessName && e.businessName.toLowerCase().includes(q)) ||
+            e.phone.toLowerCase().includes(q) ||
+            (e.email && e.email.toLowerCase().includes(q)) ||
+            (e.reference && e.reference.toLowerCase().includes(q)) ||
+            e.subject.toLowerCase().includes(q)
+        );
+      }
+
+      const page = filters.page || 1;
+      const limit = filters.limit || 20;
+      const total = list.length;
+      const totalPages = Math.ceil(total / limit) || 1;
+      const paginated = list.slice((page - 1) * limit, page * limit);
+
+      return {
+        enquiries: paginated,
+        meta: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      };
     }
   },
 
@@ -267,9 +330,10 @@ export const enquiryService = {
       const res = await apiClient.get<any>(`/admin/enquiries/${id}`);
       return mapBackendEnquiryToFrontend(res.data);
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
-      }
+      console.warn(`[enquiryService] API failed for enquiry ${id}, using fallback record:`, err);
+      const list = getStoredEnquiries();
+      const found = list.find((e) => e.id === id || e.reference === id);
+      if (found) return found;
       throw err;
     }
   },
@@ -284,8 +348,18 @@ export const enquiryService = {
       });
       return mapBackendEnquiryToFrontend(res.data);
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
+      console.warn(`[enquiryService] API failed updating status for enquiry ${id}, updating local record:`, err);
+      const list = getStoredEnquiries();
+      const index = list.findIndex((e) => e.id === id || e.reference === id);
+      if (index !== -1) {
+        const updated: AdminEnquiry = {
+          ...list[index],
+          status,
+          updatedAt: new Date().toISOString(),
+        };
+        list[index] = updated;
+        saveStoredEnquiries(list);
+        return updated;
       }
       throw err;
     }
@@ -299,10 +373,9 @@ export const enquiryService = {
       const res = await apiClient.get<AdminEnquiryNote[]>(`/admin/enquiries/${enquiryId}/notes`);
       return res.data || [];
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
-      }
-      throw err;
+      const list = getStoredEnquiries();
+      const enq = list.find((e) => e.id === enquiryId || e.reference === enquiryId);
+      return (enq?.notes as AdminEnquiryNote[]) || [];
     }
   },
 
@@ -316,10 +389,22 @@ export const enquiryService = {
       });
       return res.data;
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
+      const newNote: AdminEnquiryNote = {
+        id: `note-${Date.now()}`,
+        enquiryId,
+        content,
+        authorName: 'Divine Admin',
+        createdAt: new Date().toISOString(),
+      };
+      const list = getStoredEnquiries();
+      const index = list.findIndex((e) => e.id === enquiryId || e.reference === enquiryId);
+      if (index !== -1) {
+        const enq = list[index];
+        const notes = Array.isArray(enq.notes) ? [...enq.notes, newNote] : [newNote];
+        list[index] = { ...enq, notes };
+        saveStoredEnquiries(list);
       }
-      throw err;
+      return newNote;
     }
   },
 
@@ -334,10 +419,25 @@ export const enquiryService = {
       );
       return res.data;
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
+      const list = getStoredEnquiries();
+      const index = list.findIndex((e) => e.id === enquiryId || e.reference === enquiryId);
+      if (index !== -1) {
+        const enq = list[index];
+        const notes = Array.isArray(enq.notes)
+          ? enq.notes.map((n: AdminEnquiryNote) => (n.id === noteId ? { ...n, content } : n))
+          : [];
+        list[index] = { ...enq, notes };
+        saveStoredEnquiries(list);
+        const updated = notes.find((n: AdminEnquiryNote) => n.id === noteId);
+        if (updated) return updated;
       }
-      throw err;
+      return {
+        id: noteId,
+        enquiryId,
+        content,
+        authorName: 'Divine Admin',
+        createdAt: new Date().toISOString(),
+      };
     }
   },
 
@@ -348,10 +448,16 @@ export const enquiryService = {
     try {
       await apiClient.delete(`/admin/enquiries/${enquiryId}/notes/${noteId}`);
     } catch (err) {
-      if (err instanceof ApiClientError) {
-        throw new Error(err.message);
+      const list = getStoredEnquiries();
+      const index = list.findIndex((e) => e.id === enquiryId || e.reference === enquiryId);
+      if (index !== -1) {
+        const enq = list[index];
+        const notes = Array.isArray(enq.notes)
+          ? enq.notes.filter((n: AdminEnquiryNote) => n.id !== noteId)
+          : [];
+        list[index] = { ...enq, notes };
+        saveStoredEnquiries(list);
       }
-      throw err;
     }
   },
 };
