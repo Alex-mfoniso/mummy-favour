@@ -21,6 +21,7 @@ import {
   updateBusinessSettingsAsync 
 } from '@/services/adminService';
 import { AdminBusinessSettings } from '@/types/admin';
+import { sanitizeWhatsAppNumber } from '@/lib/whatsapp';
 
 interface FormState {
   businessName: string;
@@ -197,7 +198,7 @@ export const AdminBusinessSettingsPage: React.FC = () => {
         logoUrl: formData.logoUrl.trim() || null,
         email: formData.email.trim() || null,
         phone: formData.phone.trim() || null,
-        whatsAppNumber: formData.whatsAppNumber.trim() || null,
+        whatsAppNumber: formData.whatsAppNumber.trim() ? sanitizeWhatsAppNumber(formData.whatsAppNumber) : null,
         address: formData.address.trim() || null,
         metaTitle: formData.metaTitle.trim() || null,
         metaDescription: formData.metaDescription.trim() || null,

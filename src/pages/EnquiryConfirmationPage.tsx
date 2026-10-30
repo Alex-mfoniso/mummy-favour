@@ -18,6 +18,7 @@ import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 import { PublicEnquiryConfirmation } from '@/services/enquiryService';
+import { generateConfirmationWhatsAppMessage, buildWhatsAppUrl, formatWhatsAppDisplay } from '@/lib/whatsapp';
 
 export const EnquiryConfirmationPage: React.FC = () => {
   const location = useLocation();
@@ -68,15 +69,13 @@ export const EnquiryConfirmationPage: React.FC = () => {
     setTimeout(() => setCopiedLink(false), 2500);
   };
 
-  // Build WhatsApp follow-up URL
-  const whatsAppMessage = confirmation
-    ? encodeURIComponent(
-        `Hello Divine Favour team, I submitted an enquiry with reference: ${confirmation.reference}.\nCustomer Name: ${confirmation.customerName}\nI would like to follow up on my quotation.`
-      )
+  // Build structured WhatsApp quotation message and safe URL
+  const whatsAppNumber = settings.whatsAppNumber || '2348134726113';
+  const whatsAppFormattedMessage = confirmation
+    ? generateConfirmationWhatsAppMessage(confirmation)
     : '';
-  const cleanWhatsAppNumber = (settings.whatsAppNumber || '').replace(/[^\d+]/g, '').replace(/^\+/, '');
-  const whatsAppUrl = isWhatsAppConfigured && cleanWhatsAppNumber
-    ? `https://wa.me/${cleanWhatsAppNumber}?text=${whatsAppMessage}`
+  const whatsAppUrl = confirmation && isWhatsAppConfigured
+    ? buildWhatsAppUrl(whatsAppNumber, whatsAppFormattedMessage)
     : null;
 
   // Build Email follow-up mailto
@@ -314,13 +313,18 @@ export const EnquiryConfirmationPage: React.FC = () => {
 
           {/* Quick Direct Follow-Up Actions */}
           {(whatsAppUrl || emailMailto) && (
-            <div className="bg-white border border-[#D8D5CB] rounded-xl p-6 sm:p-8 shadow-subtle space-y-4">
-              <h2 className="text-base font-bold text-[#252A27] flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-[#246B45]" />
-                <span>Need Expedited Assistance?</span>
-              </h2>
+            <div className="bg-white border-2 border-[#246B45]/20 bg-gradient-to-br from-[#FAFBF9] to-white rounded-xl p-6 sm:p-8 shadow-subtle space-y-4">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h2 className="text-base font-bold text-[#252A27] flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-[#246B45]" />
+                  <span>Send Quote Directly to WhatsApp</span>
+                </h2>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#246B45] bg-[#EAF3ED] px-2.5 py-0.5 rounded-full border border-[#BADBC5]">
+                  Fastest Response
+                </span>
+              </div>
               <p className="text-xs text-[#5C635F] leading-relaxed">
-                If your requirement is time-sensitive or you have additional technical diagrams or artwork to share, you can follow up directly quoting reference <strong className="text-[#246B45] font-mono">{confirmation.reference}</strong>.
+                Connect directly with our production desk on WhatsApp at <strong className="text-[#252A27]">{formatWhatsAppDisplay(whatsAppNumber)}</strong>. Clicking below automatically pre-fills your reference <strong className="text-[#246B45] font-mono">{confirmation.reference}</strong> and specifications so you receive immediate quotation assessment and pricing.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
@@ -337,8 +341,9 @@ export const EnquiryConfirmationPage: React.FC = () => {
                       fullWidth
                       leftIcon={<MessageSquare className="w-4 h-4" />}
                       rightIcon={<ExternalLink className="w-3.5 h-3.5 ml-1" />}
+                      className="bg-[#246B45] hover:bg-[#1D5838] shadow-md"
                     >
-                      Follow up via WhatsApp
+                      Send Quote on WhatsApp ({formatWhatsAppDisplay(whatsAppNumber)})
                     </Button>
                   </a>
                 )}

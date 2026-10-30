@@ -7,7 +7,8 @@ import {
   ShieldCheck, 
   PhoneCall, 
   FileQuestion,
-  Layers
+  Layers,
+  MessageSquare
 } from 'lucide-react';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
@@ -21,15 +22,23 @@ import { PRODUCTS } from '@/data/products';
 import { fetchPublicProductBySlug } from '@/services/productService';
 import { Product } from '@/types';
 import { formatProductStatus } from '@/lib/utils';
+import { useBusinessSettings } from '@/context/BusinessSettingsContext';
+import { buildWhatsAppUrl, generateProductWhatsAppQuoteMessage } from '@/lib/whatsapp';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { settings, isWhatsAppConfigured } = useBusinessSettings();
 
   // Lookup product from centralized data source with initial static match
   const [product, setProduct] = useState<Product | null>(() => {
     return PRODUCTS.find((p) => p.slug === slug) || null;
   });
   const [loading, setLoading] = useState<boolean>(!product);
+
+  const whatsAppNumber = settings.whatsAppNumber || '2348134726113';
+  const whatsAppQuoteUrl = product
+    ? buildWhatsAppUrl(whatsAppNumber, generateProductWhatsAppQuoteMessage(product.title, product.category))
+    : null;
 
   useEffect(() => {
     if (!slug) return;
@@ -226,6 +235,24 @@ export const ProductDetailPage: React.FC = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                {isWhatsAppConfigured && whatsAppQuoteUrl && (
+                  <a
+                    href={whatsAppQuoteUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full sm:w-auto"
+                  >
+                    <Button
+                      variant="outline"
+                      size="md"
+                      fullWidth
+                      leftIcon={<MessageSquare className="w-4 h-4 text-[#246B45]" />}
+                      className="border-[#246B45] text-[#246B45] hover:bg-[#EAF3ED]"
+                    >
+                      Quote on WhatsApp
+                    </Button>
+                  </a>
+                )}
                 <Link 
                   to={`/request-quote?product=${product.slug}`} 
                   className="w-full sm:w-auto"
@@ -267,6 +294,24 @@ export const ProductDetailPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0 w-full md:w-auto">
+            {isWhatsAppConfigured && whatsAppQuoteUrl && (
+              <a
+                href={whatsAppQuoteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  variant="outline"
+                  size="md"
+                  fullWidth
+                  leftIcon={<MessageSquare className="w-4 h-4 text-[#246B45]" />}
+                  className="border-[#246B45] text-[#246B45] hover:bg-[#EAF3ED]"
+                >
+                  Quote on WhatsApp
+                </Button>
+              </a>
+            )}
             <Link to={`/request-quote?product=${product.slug}`} className="w-full sm:w-auto">
               <Button
                 variant="primary"

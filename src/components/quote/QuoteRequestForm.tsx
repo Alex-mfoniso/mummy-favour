@@ -163,7 +163,7 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, options?: { sendViaWhatsApp?: boolean }) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -219,23 +219,40 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         sessionStorage.setItem('df_last_enquiry_confirmation', JSON.stringify(confirmation));
       } catch {}
 
-      // Prepare optional WhatsApp handoff message with reference prepended
-      const baseMsg = generateQuotationMessage(
+      // Prepare WhatsApp handoff message with reference
+      const enrichedMsg = generateQuotationMessage(
         formData,
         mode === 'standard' ? selectedProduct?.title : undefined,
-        mode === 'standard' ? selectedProduct?.category : undefined
+        mode === 'standard' ? selectedProduct?.category : undefined,
+        confirmation.reference
       );
-      const enrichedMsg = `*Enquiry Reference: ${confirmation.reference}*\n\n${baseMsg}`;
       setGeneratedMessage(enrichedMsg);
 
       if (whatsAppReady) {
         const url = generateWhatsAppUrl(enrichedMsg);
         setWhatsappUrl(url);
+
+        // If user explicitly clicked Send Quote on WhatsApp, open WhatsApp directly
+        if (options?.sendViaWhatsApp && url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
       }
 
       setSubmitState('submitted-success');
       navigate('/enquiry-confirmation', { state: { confirmation } });
     } catch (err: any) {
+      // If user chose WhatsApp submission and backend is temporarily unreachable, open WhatsApp anyway
+      if (options?.sendViaWhatsApp && whatsAppReady) {
+        const fallbackMsg = generateQuotationMessage(
+          formData,
+          mode === 'standard' ? selectedProduct?.title : undefined,
+          mode === 'standard' ? selectedProduct?.category : undefined
+        );
+        const url = generateWhatsAppUrl(fallbackMsg);
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+      }
       setSubmitError(err.message || 'We could not submit your quotation enquiry right now. Please verify your connection and try again.');
     } finally {
       setIsSubmitting(false);
@@ -729,17 +746,31 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
               </p>
             </div>
 
-            {/* Primary Submit Button */}
+            {/* Submission Actions */}
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                disabled={isSubmitting}
-                leftIcon={<Send className="w-4 h-4" />}
-              >
-                {isSubmitting ? 'Recording Enquiry...' : 'Submit Quotation Request'}
-              </Button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <Button
+                  type="button"
+                  onClick={(e) => handleSubmit(e, { sendViaWhatsApp: true })}
+                  variant="primary"
+                  size="lg"
+                  disabled={isSubmitting}
+                  leftIcon={<MessageSquare className="w-4 h-4" />}
+                  className="bg-[#246B45] hover:bg-[#1D5838] shadow-md font-bold"
+                >
+                  {isSubmitting ? 'Recording Enquiry...' : 'Send Quote on WhatsApp'}
+                </Button>
+
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="lg"
+                  disabled={isSubmitting}
+                  leftIcon={<Send className="w-4 h-4" />}
+                >
+                  Submit Online
+                </Button>
+              </div>
 
               <button
                 type="button"

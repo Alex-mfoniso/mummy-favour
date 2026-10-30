@@ -9,8 +9,8 @@ export const DEFAULT_BUSINESS_SETTINGS: Prisma.BusinessSettingsCreateInput = {
   fullDescription: 'Divine Favour provides end-to-end flexible packaging solutions for retailers, industrial processors, wholesalers, and commercial logistics hubs across Nigeria.',
   logoUrl: null,
   email: null,
-  phone: null,
-  whatsAppNumber: null,
+  phone: '+234 813 472 6113',
+  whatsAppNumber: '2348134726113',
   address: null,
   businessHours: {
     monday: '8:00 AM – 5:00 PM',

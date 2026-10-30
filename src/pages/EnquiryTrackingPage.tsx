@@ -20,6 +20,7 @@ import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 import { enquiryService, PublicEnquiryTracking } from '@/services/enquiryService';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
 export const EnquiryTrackingPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -79,14 +80,12 @@ export const EnquiryTrackingPage: React.FC = () => {
   };
 
   // Build WhatsApp follow-up URL
-  const cleanWhatsAppNumber = (settings.whatsAppNumber || '').replace(/[^\d+]/g, '').replace(/^\+/, '');
+  const whatsAppNumber = settings.whatsAppNumber || '2348134726113';
   const whatsAppMessage = trackingData
-    ? encodeURIComponent(
-        `Hello Divine Favour, I am tracking my packaging enquiry with reference: ${trackingData.reference}.\nCurrent status is: ${trackingData.statusTitle}.\nCould you please provide an update on this?`
-      )
+    ? `Hello Divine Favour, I am tracking my packaging enquiry with reference: ${trackingData.reference}.\nCurrent status is: ${trackingData.statusTitle}.\nCould you please provide an update on this?`
     : '';
-  const whatsAppUrl = isWhatsAppConfigured && cleanWhatsAppNumber
-    ? `https://wa.me/${cleanWhatsAppNumber}?text=${whatsAppMessage}`
+  const whatsAppUrl = isWhatsAppConfigured && trackingData
+    ? buildWhatsAppUrl(whatsAppNumber, whatsAppMessage)
     : null;
 
   // Build Email follow-up mailto

@@ -12,6 +12,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
+import { sanitizeWhatsAppNumber, formatWhatsAppDisplay } from '@/lib/whatsapp';
 
 const InstagramIcon: React.FC = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -53,7 +54,8 @@ export const Footer: React.FC = () => {
     formattedHours 
   } = useBusinessSettings();
 
-  const cleanWhatsAppNumber = (settings.whatsAppNumber || '').replace(/[^0-9]/g, '');
+  const cleanWhatsAppNumber = sanitizeWhatsAppNumber(settings.whatsAppNumber || '2348134726113');
+  const displayWhatsAppNumber = formatWhatsAppDisplay(settings.whatsAppNumber || '2348134726113');
 
   return (
     <footer className="bg-white border-t border-[#E6E4DD] text-[#252A27] mt-auto">
@@ -267,7 +269,7 @@ export const Footer: React.FC = () => {
                     rel="noopener noreferrer"
                     className="text-[#246B45] font-semibold hover:underline"
                   >
-                    Chat on WhatsApp
+                    WhatsApp: {displayWhatsAppNumber}
                   </a>
                 </div>
               )}

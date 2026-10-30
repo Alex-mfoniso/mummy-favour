@@ -18,6 +18,7 @@ import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
+import { formatWhatsAppDisplay, buildWhatsAppUrl } from '@/lib/whatsapp';
 
 interface FAQItem {
   question: string;
@@ -129,16 +130,19 @@ export const ContactPage: React.FC = () => {
             </div>
 
             <div className="pt-2 border-t border-[#E6E4DD]">
-              {isWhatsAppConfigured && settings.whatsAppNumber ? (
-                <a
-                  href={`https://wa.me/${settings.whatsAppNumber.replace(/[^0-9]/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#246B45] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-[#246B45] rounded-sm"
-                >
-                  <span>Chat on WhatsApp</span>
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+              {isWhatsAppConfigured && (settings.whatsAppNumber || '2348134726113') ? (
+                <div className="space-y-1">
+                  <a
+                    href={buildWhatsAppUrl(settings.whatsAppNumber || '2348134726113') || 'https://wa.me/2348134726113'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#246B45] hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-[#246B45] rounded-sm"
+                  >
+                    <span>Chat on WhatsApp ({formatWhatsAppDisplay(settings.whatsAppNumber || '2348134726113')})</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <span className="block text-[11px] text-[#5C635F]">Available for instant quotes and product enquiries</span>
+                </div>
               ) : (
                 <div className="text-xs text-[#88918C]">
                   <span className="font-semibold text-[#5C635F] block">Channel Setup:</span>

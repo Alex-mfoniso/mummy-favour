@@ -24,14 +24,14 @@ export const SITE_CONFIG = {
   whatsAppNumber: (
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BUSINESS_WHATSAPP_NUMBER) ||
     (typeof process !== 'undefined' && process.env?.VITE_BUSINESS_WHATSAPP_NUMBER) ||
-    ''
+    '2348134726113'
   ).trim(),
 
   // 2. Verified Phone Number
   phone: (
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_BUSINESS_PHONE) ||
     (typeof process !== 'undefined' && process.env?.VITE_BUSINESS_PHONE) ||
-    ''
+    '+234 813 472 6113'
   ).trim(),
 
   // 3. Verified Email Address

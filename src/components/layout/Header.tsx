@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/ui/Container';
 import { NavItem } from '@/types';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
 const NAV_LINKS: NavItem[] = [
   { label: 'Home', path: '/' },
@@ -224,7 +225,7 @@ export const Header: React.FC = () => {
                   {/* Direct WhatsApp Contact button if configured */}
                   {settings.whatsAppNumber && (
                     <a
-                      href={`https://wa.me/${settings.whatsAppNumber.replace(/[^0-9]/g, '')}`}
+                      href={buildWhatsAppUrl(settings.whatsAppNumber) || 'https://wa.me/2348134726113'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-md text-xs font-semibold text-[#1D5838] bg-[#EAF3ED] border border-[#BADBC5] hover:bg-[#D3E6DA] transition-colors"
