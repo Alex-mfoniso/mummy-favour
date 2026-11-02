@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Package, Layers, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { X, Package, Layers, Sparkles, Image as ImageIcon, Save } from 'lucide-react';
 import { AdminProduct, AdminCategory } from '@/types/admin';
 import { ProductStatus } from '@/types';
 import { Input } from '@/components/ui/Input';
@@ -157,21 +157,25 @@ export const AdminProductModal: React.FC<AdminProductModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs p-2 sm:p-4 md:p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-black/60 backdrop-blur-xs animate-in fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-modal-title"
       onClick={onClose}
     >
-      <div className="min-h-full flex items-center justify-center">
-        <div
-          className="relative bg-white border border-[#D8D5CB] rounded-xl shadow-2xl max-w-2xl sm:max-w-3xl w-full flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
-          onClick={(e) => e.stopPropagation()}
+      <div
+        className="relative bg-white border border-[#D8D5CB] rounded-xl shadow-2xl max-w-2xl sm:max-w-3xl w-full flex flex-col h-auto max-h-[85vh] max-h-[85dvh] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <form
+          onSubmit={handleSubmit}
+          id="product-form"
+          className="flex flex-col h-full min-h-0 overflow-hidden"
         >
-          {/* Header */}
-          <div className="p-4 sm:p-5 border-b border-[#E6E4DD] flex items-center justify-between bg-white shrink-0 z-10">
-            <div className="pr-4">
-              <div className="flex items-center gap-2 mb-1">
+          {/* Header with Save Button right at the top */}
+          <div className="p-3.5 sm:p-4.5 border-b border-[#E6E4DD] flex items-center justify-between bg-white shrink-0 z-20">
+            <div className="pr-3">
+              <div className="flex items-center gap-2 mb-0.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#246B45]">
                   {isEditing ? 'Packaging Catalogue' : 'New Packaging Entry'}
                 </span>
@@ -181,31 +185,35 @@ export const AdminProductModal: React.FC<AdminProductModalProps> = ({
                   </span>
                 )}
               </div>
-              <h2 id="product-modal-title" className="text-base sm:text-lg font-bold text-[#252A27]">
+              <h2 id="product-modal-title" className="text-base sm:text-lg font-bold text-[#252A27] truncate max-w-xs sm:max-w-md">
                 {isEditing ? `Edit: ${product?.title || 'Product'}` : 'Add New Packaging Product'}
               </h2>
-              <p className="text-xs text-[#5C635F] mt-0.5">
-                {isEditing
-                  ? 'Update technical gauges, dimensions, stock availability, and presentation details.'
-                  : 'Create a new packaging entry in local demonstration state.'}
-              </p>
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="p-1.5 sm:p-2 rounded-lg text-[#88918C] hover:text-[#252A27] hover:bg-[#F5F4EF] transition-colors shrink-0"
-              aria-label="Close modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
+
+            {/* Top-Right Quick Action: Primary Save Button + Close Button */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                leftIcon={<Save className="w-3.5 h-3.5" />}
+                className="shadow-sm"
+              >
+                {isEditing ? 'Save Changes' : 'Create Product'}
+              </Button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="p-1.5 sm:p-2 rounded-lg text-[#88918C] hover:text-[#252A27] hover:bg-[#F5F4EF] transition-colors shrink-0"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Scrollable Form Body */}
-          <form
-            onSubmit={handleSubmit}
-            id="product-form"
-            className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 min-h-0 overscroll-contain"
-          >
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 min-h-0 overscroll-contain">
             {/* Section 1: General Info */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-1 border-b border-[#E6E4DD]">
@@ -409,12 +417,27 @@ export const AdminProductModal: React.FC<AdminProductModalProps> = ({
                 </div>
               </label>
             </div>
-          </form>
 
-          {/* Footer Actions */}
-          <div className="p-3.5 sm:p-4 border-t border-[#E6E4DD] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAF9F6] shrink-0 z-10">
+            {/* In-flow bottom action buttons at the end of form inputs */}
+            <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-[#E6E4DD]">
+              <Button variant="outline" size="sm" onClick={onClose} type="button">
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                leftIcon={<Save className="w-3.5 h-3.5" />}
+              >
+                {isEditing ? 'Save Changes' : 'Create Product'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Fixed Footer Actions pinned to bottom of modal */}
+          <div className="p-3.5 sm:p-4 border-t border-[#E6E4DD] flex items-center justify-between gap-3 bg-[#FAF9F6] shrink-0 z-20">
             <span className="text-[11px] text-[#88918C]">
-              *Modifications persist in browser demonstration state.
+              *Changes persist in demonstration state.
             </span>
             <div className="flex items-center justify-end gap-2.5">
               <Button variant="outline" size="sm" onClick={onClose} type="button">
@@ -422,15 +445,16 @@ export const AdminProductModal: React.FC<AdminProductModalProps> = ({
               </Button>
               <Button
                 type="submit"
-                form="product-form"
                 variant="primary"
                 size="sm"
+                leftIcon={<Save className="w-3.5 h-3.5" />}
+                className="shadow-sm"
               >
                 {isEditing ? 'Save Changes' : 'Create Product'}
               </Button>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
