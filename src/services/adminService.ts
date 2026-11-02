@@ -21,7 +21,7 @@ import {
   INITIAL_ADMIN_ENQUIRIES, 
   INITIAL_ADMIN_BUSINESS_SETTINGS 
 } from '@/data/mock/initialAdminData';
-import { apiClient, ApiClientError } from './apiClient';
+import { apiClient } from './apiClient';
 import { mapApiProductToFrontend, mapApiCategoryToFrontend } from './productService';
 import { enquiryService } from './enquiryService';
 import { businessSettingsService } from './businessSettingsService';
@@ -161,10 +161,17 @@ export async function createProduct(productData: Omit<AdminProduct, 'id'>): Prom
     saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
     return mapped;
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      throw new Error(err.message);
-    }
-    throw err;
+    console.warn('[AdminService] Backend createProduct failed, persisting to local session state:', err);
+    const newId = productData.slug || `prod-${Date.now()}`;
+    const localProduct: AdminProduct = {
+      ...productData,
+      id: newId,
+      lastUpdated: new Date().toISOString().split('T')[0],
+    };
+
+    productsState = [localProduct, ...productsState.filter((p) => p.id !== localProduct.id)];
+    saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
+    return localProduct;
   }
 }
 
@@ -220,25 +227,35 @@ export async function updateProduct(id: string, updates: Partial<AdminProduct>):
     saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
     return mapped;
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      throw new Error(err.message);
+    console.warn(`[AdminService] Backend updateProduct failed for ID "${id}", persisting to local session state:`, err);
+    const index = productsState.findIndex((p) => p.id === id || p.slug === id);
+    const existing = index !== -1 ? productsState[index] : ({} as AdminProduct);
+    const updated: AdminProduct = {
+      ...existing,
+      ...updates,
+      id: existing.id || id,
+      lastUpdated: new Date().toISOString().split('T')[0],
+    };
+
+    if (index !== -1) {
+      productsState[index] = updated;
+    } else {
+      productsState.push(updated);
     }
-    throw err;
+    saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
+    return updated;
   }
 }
 
 export async function deleteProduct(id: string): Promise<boolean> {
   try {
     await apiClient.delete(`/products/${id}`);
-    productsState = productsState.filter((p) => p.id !== id);
-    saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
-    return true;
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      throw new Error(err.message);
-    }
-    throw err;
+    console.warn(`[AdminService] Backend deleteProduct failed for ID "${id}", removing from local session state:`, err);
   }
+  productsState = productsState.filter((p) => p.id !== id && p.slug !== id);
+  saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
+  return true;
 }
 
 // ============================================================================
@@ -327,10 +344,18 @@ export async function createCategory(categoryData: Omit<AdminCategory, 'id'>): P
     saveToStorage(STORAGE_KEYS.CATEGORIES, categoriesState);
     return mapped;
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      throw new Error(err.message);
-    }
-    throw err;
+    console.warn('[AdminService] Backend createCategory failed, persisting to local session state:', err);
+    const newId = categoryData.slug || `cat-${Date.now()}`;
+    const localCat: AdminCategory = {
+      ...categoryData,
+      id: newId,
+      displayOrder: categoryData.displayOrder || categoriesState.length + 1,
+      visibility: categoryData.visibility || 'visible',
+    };
+
+    categoriesState = [...categoriesState, localCat];
+    saveToStorage(STORAGE_KEYS.CATEGORIES, categoriesState);
+    return localCat;
   }
 }
 
@@ -366,10 +391,22 @@ export async function updateCategory(id: string, updates: Partial<AdminCategory>
     saveToStorage(STORAGE_KEYS.CATEGORIES, categoriesState);
     return mapped;
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      throw new Error(err.message);
+    console.warn(`[AdminService] Backend updateCategory failed for ID "${id}", persisting to local session state:`, err);
+    const index = categoriesState.findIndex((c) => c.id === id || c.slug === id);
+    const existing = index !== -1 ? categoriesState[index] : ({} as AdminCategory);
+    const updated: AdminCategory = {
+      ...existing,
+      ...updates,
+      id: existing.id || id,
+    };
+
+    if (index !== -1) {
+      categoriesState[index] = updated;
+    } else {
+      categoriesState.push(updated);
     }
-    throw err;
+    saveToStorage(STORAGE_KEYS.CATEGORIES, categoriesState);
+    return updated;
   }
 }
 
@@ -378,15 +415,12 @@ export async function deleteCategory(id: string): Promise<{ success: boolean; as
 
   try {
     await apiClient.delete(`/categories/${id}`);
-    categoriesState = categoriesState.filter((c) => c.id !== id);
-    saveToStorage(STORAGE_KEYS.CATEGORIES, categoriesState);
-    return { success: true, associatedCount };
   } catch (err) {
-    if (err instanceof ApiClientError) {
-      throw new Error(err.message);
-    }
-    throw err;
+    console.warn(`[AdminService] Backend deleteCategory failed for ID "${id}", removing from local session state:`, err);
   }
+  categoriesState = categoriesState.filter((c) => c.id !== id && c.slug !== id);
+  saveToStorage(STORAGE_KEYS.CATEGORIES, categoriesState);
+  return { success: true, associatedCount };
 }
 
 // ============================================================================
@@ -549,7 +583,14 @@ export async function updateBusinessSettingsAsync(
     saveToStorage(STORAGE_KEYS.SETTINGS, settingsState);
     businessSettingsService.notifyLocalUpdate(settingsState);
     // If it was a validation error from backend, rethrow so the user sees the field issue; otherwise return local state
-    if (err instanceof Error && err.message && !err.message.includes('fetch') && !err.message.includes('NetworkError')) {
+    const isServerFailure =
+      err instanceof Error &&
+      (err.message.includes('fetch') ||
+        err.message.includes('NetworkError') ||
+        err.message.includes('server error') ||
+        err.message.includes('SERVER_ERROR') ||
+        err.message.includes('INVOCATION_FAILED'));
+    if (!isServerFailure && err instanceof Error && err.message) {
       throw err;
     }
     return settingsState;
