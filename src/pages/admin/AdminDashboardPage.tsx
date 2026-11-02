@@ -74,7 +74,7 @@ export const AdminDashboardPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5">
-          <Link to="/admin/products?action=new">
+          <Link to="/admin/products/new">
             <Button
               variant="primary"
               size="sm"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   Plus, 
   Search, 
@@ -14,20 +14,19 @@ import { Button } from '@/components/ui/Button';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { ProductStatusBadge } from '@/components/admin/AdminStatusBadge';
 import { AdminEmptyState } from '@/components/admin/AdminEmptyState';
-import { AdminProductModal } from '@/components/admin/AdminProductModal';
 import { ConfirmDeleteModal } from '@/components/admin/ConfirmDeleteModal';
 import { 
   listProducts, 
   loadProducts,
   loadCategories,
-  createProduct, 
-  updateProduct, 
   deleteProduct 
 } from '@/services/adminService';
 import { AdminProduct, AdminCategory } from '@/types/admin';
 
 export const AdminProductsPage: React.FC = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<AdminProduct[]>([]);
   const [categories, setCategories] = useState<AdminCategory[]>([]);
 
@@ -37,8 +36,6 @@ export const AdminProductsPage: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState('all');
 
   // Modals state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
   const [bannerNotice, setBannerNotice] = useState<string | null>(null);
 
@@ -57,16 +54,20 @@ export const AdminProductsPage: React.FC = () => {
     refreshData();
   }, []);
 
-  // Handle deep-link query parameter ?action=new
+  // Listen for redirect notice from edit/create page
+  useEffect(() => {
+    if (location.state && (location.state as any).notice) {
+      showNotice((location.state as any).notice);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // Handle deep-link query parameter ?action=new by redirecting to dedicated page
   useEffect(() => {
     if (searchParams.get('action') === 'new') {
-      setEditingProduct(null);
-      setIsModalOpen(true);
-      // Remove param from url cleanly
-      searchParams.delete('action');
-      setSearchParams(searchParams, { replace: true });
+      navigate('/admin/products/new', { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, navigate]);
 
   // Filtered products list
   const filteredProducts = useMemo(() => {
@@ -80,32 +81,6 @@ export const AdminProductsPage: React.FC = () => {
   const showNotice = (msg: string) => {
     setBannerNotice(msg);
     setTimeout(() => setBannerNotice(null), 3500);
-  };
-
-  const handleOpenAdd = () => {
-    setEditingProduct(null);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEdit = (product: AdminProduct) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveProduct = async (data: Omit<AdminProduct, 'id'>, id?: string) => {
-    try {
-      if (id) {
-        await updateProduct(id, data);
-        showNotice(`Updated product "${data.title}" successfully.`);
-      } else {
-        await createProduct(data);
-        showNotice(`Created new product "${data.title}" successfully.`);
-      }
-      await refreshData();
-      setIsModalOpen(false);
-    } catch (err: unknown) {
-      alert((err as Error).message || 'Failed to save product.');
-    }
   };
 
   const handleDeleteConfirm = async () => {
@@ -139,14 +114,15 @@ export const AdminProductsPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={handleOpenAdd}
-          leftIcon={<Plus className="w-4 h-4" />}
-        >
-          Add Product
-        </Button>
+        <Link to="/admin/products/new">
+          <Button
+            variant="primary"
+            size="sm"
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            Add Product
+          </Button>
+        </Link>
       </div>
 
       {/* Local Feedback Banner */}
@@ -236,7 +212,7 @@ export const AdminProductsPage: React.FC = () => {
                 description="Your product inventory is currently empty. Add your first nylon packaging line."
                 action={{
                   label: 'Add Product Now',
-                  onClick: handleOpenAdd,
+                  onClick: () => navigate('/admin/products/new'),
                 }}
               />
             ) : (
@@ -332,14 +308,13 @@ export const AdminProductsPage: React.FC = () => {
                           <ExternalLink className="w-3.5 h-3.5" />
                         </Link>
 
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEdit(product)}
-                          className="p-1.5 rounded text-[#246B45] hover:bg-[#EAF3ED]"
-                          title="Edit product"
+                        <Link
+                          to={`/admin/products/${product.id}/edit`}
+                          className="p-1.5 rounded text-[#246B45] hover:bg-[#EAF3ED] transition-colors"
+                          title="Edit product on dedicated page"
                         >
                           <Edit className="w-3.5 h-3.5" />
-                        </button>
+                        </Link>
 
                         <button
                           type="button"
@@ -369,15 +344,6 @@ export const AdminProductsPage: React.FC = () => {
       {/* =========================================================================
           MODALS
           ========================================================================= */}
-      {/* Add / Edit Product Modal */}
-      <AdminProductModal
-        isOpen={isModalOpen}
-        product={editingProduct}
-        categories={categories}
-        onSave={handleSaveProduct}
-        onClose={() => setIsModalOpen(false)}
-      />
-
       {/* Delete Confirmation Modal */}
       <ConfirmDeleteModal
         isOpen={Boolean(deleteTarget)}

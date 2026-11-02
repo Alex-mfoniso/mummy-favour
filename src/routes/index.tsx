@@ -18,6 +18,7 @@ import { ProtectedRoute } from '@/components/admin/ProtectedRoute';
 // Admin Dashboard Pages (Phase 6)
 import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage';
 import { AdminProductsPage } from '@/pages/admin/AdminProductsPage';
+import { AdminProductEditPage } from '@/pages/admin/AdminProductEditPage';
 import { AdminCategoriesPage } from '@/pages/admin/AdminCategoriesPage';
 import { AdminEnquiriesPage } from '@/pages/admin/AdminEnquiriesPage';
 import { AdminBusinessSettingsPage } from '@/pages/admin/AdminBusinessSettingsPage';
@@ -96,6 +97,14 @@ export const router = createBrowserRouter([
       {
         path: 'products',
         element: <AdminProductsPage />,
+      },
+      {
+        path: 'products/new',
+        element: <AdminProductEditPage />,
+      },
+      {
+        path: 'products/:id/edit',
+        element: <AdminProductEditPage />,
       },
       {
         path: 'categories',
