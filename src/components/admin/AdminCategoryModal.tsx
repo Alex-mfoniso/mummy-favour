@@ -103,108 +103,111 @@ export const AdminCategoryModal: React.FC<AdminCategoryModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs p-2 sm:p-4 md:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="category-modal-title"
+      onClick={onClose}
     >
-      <div
-        className="bg-white border border-[#D8D5CB] rounded-lg shadow-2xl max-w-lg w-full max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-5 border-b border-[#E6E4DD] flex items-center justify-between">
-          <div>
-            <h2 id="category-modal-title" className="text-base font-bold text-[#252A27]">
-              {isEditing ? 'Edit Category' : 'Add New Category'}
-            </h2>
-            <p className="text-xs text-[#5C635F]">
-              Configure packaging line grouping and storefront visibility.
-            </p>
+      <div className="min-h-full flex items-center justify-center">
+        <div
+          className="relative bg-white border border-[#D8D5CB] rounded-xl shadow-2xl max-w-lg w-full flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="p-4 sm:p-5 border-b border-[#E6E4DD] flex items-center justify-between bg-white shrink-0 z-10">
+            <div>
+              <h2 id="category-modal-title" className="text-base font-bold text-[#252A27]">
+                {isEditing ? 'Edit Category' : 'Add New Category'}
+              </h2>
+              <p className="text-xs text-[#5C635F]">
+                Configure packaging line grouping and storefront visibility.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded text-[#88918C] hover:text-[#252A27] hover:bg-[#F5F4EF]"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded text-[#88918C] hover:text-[#252A27] hover:bg-[#F5F4EF]"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        <form onSubmit={handleSubmit} id="category-form" className="p-6 space-y-4 overflow-y-auto flex-1">
-          <Input
-            label="Category Name"
-            placeholder="e.g. Agricultural & Greenhouse Films"
-            required
-            value={name}
-            onChange={(e) => handleNameChange(e.target.value)}
-            error={errors.name}
-          />
-
-          <Input
-            label="Category Slug Identifier"
-            placeholder="e.g. agricultural-greenhouse-films"
-            required
-            value={slug}
-            onChange={(e) => {
-              setSlug(e.target.value);
-              if (errors.slug) setErrors((prev) => ({ ...prev, slug: '' }));
-            }}
-            error={errors.slug}
-            helperText="Used in URLs: /products?category=slug"
-          />
-
-          <Textarea
-            label="Category Description"
-            placeholder="Brief overview of the packaging applications in this category..."
-            rows={3}
-            required
-            value={shortDescription}
-            onChange={(e) => {
-              setShortDescription(e.target.value);
-              if (errors.shortDescription) setErrors((prev) => ({ ...prev, shortDescription: '' }));
-            }}
-            error={errors.shortDescription}
-          />
-
-          <Input
-            label="Category Image URL"
-            placeholder="https://..."
-            value={image}
-            onChange={(e) => setImage(e.target.value)}
-            helperText="Representative category banner image."
-          />
-
-          <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} id="category-form" className="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain">
             <Input
-              label="Display Order"
-              type="number"
-              min="1"
-              max="99"
-              value={displayOrder.toString()}
-              onChange={(e) => setDisplayOrder(parseInt(e.target.value, 10) || 1)}
-              helperText="Position in catalogue menus."
+              label="Category Name"
+              placeholder="e.g. Agricultural & Greenhouse Films"
+              required
+              value={name}
+              onChange={(e) => handleNameChange(e.target.value)}
+              error={errors.name}
             />
 
-            <Select
-              label="Storefront Visibility"
-              options={[
-                { value: 'visible', label: 'Visible (Published)' },
-                { value: 'hidden', label: 'Hidden (Draft / Archive)' },
-              ]}
-              value={visibility}
-              onChange={(e) => setVisibility(e.target.value as 'visible' | 'hidden')}
+            <Input
+              label="Category Slug Identifier"
+              placeholder="e.g. agricultural-greenhouse-films"
+              required
+              value={slug}
+              onChange={(e) => {
+                setSlug(e.target.value);
+                if (errors.slug) setErrors((prev) => ({ ...prev, slug: '' }));
+              }}
+              error={errors.slug}
+              helperText="Used in URLs: /products?category=slug"
             />
+
+            <Textarea
+              label="Category Description"
+              placeholder="Brief overview of the packaging applications in this category..."
+              rows={3}
+              required
+              value={shortDescription}
+              onChange={(e) => {
+                setShortDescription(e.target.value);
+                if (errors.shortDescription) setErrors((prev) => ({ ...prev, shortDescription: '' }));
+              }}
+              error={errors.shortDescription}
+            />
+
+            <Input
+              label="Category Image URL"
+              placeholder="https://..."
+              value={image}
+              onChange={(e) => setImage(e.target.value)}
+              helperText="Representative category banner image."
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Display Order"
+                type="number"
+                min="1"
+                max="99"
+                value={displayOrder.toString()}
+                onChange={(e) => setDisplayOrder(parseInt(e.target.value, 10) || 1)}
+                helperText="Position in catalogue menus."
+              />
+
+              <Select
+                label="Storefront Visibility"
+                options={[
+                  { value: 'visible', label: 'Visible (Published)' },
+                  { value: 'hidden', label: 'Hidden (Draft / Archive)' },
+                ]}
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as 'visible' | 'hidden')}
+              />
+            </div>
+          </form>
+
+          <div className="p-3.5 sm:p-4 border-t border-[#E6E4DD] flex items-center justify-end gap-2.5 bg-[#FAF9F6] shrink-0 z-10">
+            <Button variant="outline" size="sm" onClick={onClose} type="button">
+              Cancel
+            </Button>
+            <Button type="submit" form="category-form" variant="primary" size="sm">
+              {isEditing ? 'Save Changes' : 'Create Category'}
+            </Button>
           </div>
-        </form>
-
-        <div className="p-4 border-t border-[#E6E4DD] flex items-center justify-end gap-2.5 bg-[#FAF9F6] rounded-b-lg">
-          <Button variant="outline" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="submit" form="category-form" variant="primary" size="sm">
-            {isEditing ? 'Save Changes' : 'Create Category'}
-          </Button>
         </div>
       </div>
     </div>

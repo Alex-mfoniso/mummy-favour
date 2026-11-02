@@ -180,63 +180,65 @@ export const AdminEnquiryDetailModal: React.FC<AdminEnquiryDetailModalProps> = (
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in overflow-y-auto"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs p-2 sm:p-4 md:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="enquiry-modal-title"
+      onClick={onClose}
     >
-      <div
-        className="bg-white border border-[#D8D5CB] rounded-lg shadow-2xl max-w-2xl w-full my-8 max-h-[90vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="p-5 border-b border-[#E6E4DD] flex items-start justify-between bg-white rounded-t-lg sticky top-0 z-10">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#246B45] font-mono">
-                {enquiry.reference || `REF #${enquiry.id.substring(0, 8)}`}
-              </span>
-              {enquiry.reference && (
-                <button
-                  type="button"
-                  onClick={handleCopyRef}
-                  className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border border-[#D8D5CB] bg-white text-[#5C635F] hover:text-[#246B45] hover:border-[#246B45] cursor-pointer"
-                  title="Copy reference number to clipboard"
-                >
-                  {copiedRef ? (
-                    <>
-                      <Check className="w-3 h-3 text-[#246B45]" />
-                      <span className="text-[#246B45] font-medium">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3 h-3" />
-                      <span>Copy Ref</span>
-                    </>
-                  )}
-                </button>
-              )}
-              <span className="text-[#D8D5CB]" aria-hidden="true">•</span>
-              <span className="text-[11px] font-semibold text-[#5C635F]">
-                {formatType(enquiry.type)}
-              </span>
+      <div className="min-h-full flex items-center justify-center">
+        <div
+          className="relative bg-white border border-[#D8D5CB] rounded-xl shadow-2xl max-w-2xl sm:max-w-3xl w-full flex flex-col max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Header */}
+          <div className="p-4 sm:p-5 border-b border-[#E6E4DD] flex items-start justify-between bg-white shrink-0 z-10">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#246B45] font-mono">
+                  {enquiry.reference || `REF #${enquiry.id.substring(0, 8)}`}
+                </span>
+                {enquiry.reference && (
+                  <button
+                    type="button"
+                    onClick={handleCopyRef}
+                    className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border border-[#D8D5CB] bg-white text-[#5C635F] hover:text-[#246B45] hover:border-[#246B45] cursor-pointer"
+                    title="Copy reference number to clipboard"
+                  >
+                    {copiedRef ? (
+                      <>
+                        <Check className="w-3 h-3 text-[#246B45]" />
+                        <span className="text-[#246B45] font-medium">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span>Copy Ref</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                <span className="text-[#D8D5CB]" aria-hidden="true">•</span>
+                <span className="text-[11px] font-semibold text-[#5C635F]">
+                  {formatType(enquiry.type)}
+                </span>
+              </div>
+              <h2 id="enquiry-modal-title" className="text-base sm:text-lg font-bold text-[#252A27]">
+                {enquiry.subject}
+              </h2>
             </div>
-            <h2 id="enquiry-modal-title" className="text-lg font-bold text-[#252A27]">
-              {enquiry.subject}
-            </h2>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded text-[#88918C] hover:text-[#252A27] hover:bg-[#F5F4EF]"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded text-[#88918C] hover:text-[#252A27] hover:bg-[#F5F4EF]"
-            aria-label="Close dialog"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Content Body */}
-        <div className="p-6 space-y-6 overflow-y-auto flex-1 text-xs">
+          {/* Content Body */}
+          <div className="p-4 sm:p-6 space-y-6 overflow-y-auto flex-1 min-h-0 text-xs overscroll-contain">
           {/* Status Bar & Management Controls */}
           <div className="p-4 bg-[#FAF9F6] border border-[#D8D5CB] rounded-lg space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -501,26 +503,27 @@ export const AdminEnquiryDetailModal: React.FC<AdminEnquiryDetailModalProps> = (
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-[#E6E4DD] flex items-center justify-between bg-[#FAF9F6] rounded-b-lg">
-          <span className="text-[11px] text-[#88918C] font-mono">
-            {enquiry.reference ? `Reference: ${enquiry.reference}` : `ID: ${enquiry.id}`}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="primary"
-              size="sm"
-              leftIcon={<ShoppingBag className="w-3.5 h-3.5" />}
-              onClick={() => {
-                navigate(`/admin/orders?convertEnquiryId=${enquiry.id}`);
-                onClose();
-              }}
-            >
-              Convert to Order
-            </Button>
-            <Button variant="outline" size="sm" onClick={onClose}>
-              Close Record
-            </Button>
+          {/* Footer */}
+          <div className="p-3.5 sm:p-4 border-t border-[#E6E4DD] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAF9F6] shrink-0 z-10">
+            <span className="text-[11px] text-[#88918C] font-mono">
+              {enquiry.reference ? `Reference: ${enquiry.reference}` : `ID: ${enquiry.id}`}
+            </span>
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<ShoppingBag className="w-3.5 h-3.5" />}
+                onClick={() => {
+                  navigate(`/admin/orders?convertEnquiryId=${enquiry.id}`);
+                  onClose();
+                }}
+              >
+                Convert to Order
+              </Button>
+              <Button variant="outline" size="sm" onClick={onClose} type="button">
+                Close Record
+              </Button>
+            </div>
           </div>
         </div>
       </div>
