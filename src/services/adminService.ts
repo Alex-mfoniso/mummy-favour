@@ -34,6 +34,25 @@ export const STORAGE_KEYS = {
 };
 
 export const SYNC_EVENT_NAME = 'df_storage_sync';
+export const DATA_VERSION = 'df_data_v4_2026_11_10';
+
+// Invalidate stale previous browser storage so updated product titles immediately load
+export function checkAndMigrateStorage(): void {
+  try {
+    if (typeof window !== 'undefined') {
+      const currentVersion = window.localStorage?.getItem('df_data_version');
+      if (currentVersion !== DATA_VERSION) {
+        window.localStorage?.removeItem(STORAGE_KEYS.PRODUCTS);
+        window.sessionStorage?.removeItem(STORAGE_KEYS.PRODUCTS);
+        window.localStorage?.setItem('df_data_version', DATA_VERSION);
+      }
+    }
+  } catch {
+    // Storage unavailable
+  }
+}
+
+checkAndMigrateStorage();
 
 // Safe storage access helper: uses localStorage (cross-tab persistent) with sessionStorage migration
 export function loadFromStorage<T>(key: string, fallback: T): T {

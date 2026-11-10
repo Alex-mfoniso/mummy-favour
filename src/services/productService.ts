@@ -13,6 +13,25 @@ export const ADMIN_STORAGE_KEYS = {
   CATEGORIES: 'df_admin_categories_demo',
 };
 
+export const DATA_VERSION = 'df_data_v4_2026_11_10';
+
+export function checkAndMigrateProductStorage(): void {
+  try {
+    if (typeof window !== 'undefined') {
+      const currentVersion = window.localStorage?.getItem('df_data_version');
+      if (currentVersion !== DATA_VERSION) {
+        window.localStorage?.removeItem(ADMIN_STORAGE_KEYS.PRODUCTS);
+        window.sessionStorage?.removeItem(ADMIN_STORAGE_KEYS.PRODUCTS);
+        window.localStorage?.setItem('df_data_version', DATA_VERSION);
+      }
+    }
+  } catch {
+    // Storage unavailable
+  }
+}
+
+checkAndMigrateProductStorage();
+
 export function getStoredProducts(): Product[] | null {
   try {
     if (typeof window !== 'undefined') {
