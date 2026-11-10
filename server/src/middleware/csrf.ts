@@ -39,7 +39,8 @@ export function verifyCsrf(req: Request, res: Response, next: NextFunction): voi
     const isAllowed =
       config.corsOrigins.includes('*') ||
       config.corsOrigins.includes(origin) ||
-      (config.isDevelopment && origin.startsWith('http://localhost:'));
+      (config.isDevelopment && origin.startsWith('http://localhost:')) ||
+      origin.endsWith('.vercel.app');
 
     if (!isAllowed) {
       res.status(403).json({

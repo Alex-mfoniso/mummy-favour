@@ -34,7 +34,7 @@ export const STORAGE_KEYS = {
 };
 
 export const SYNC_EVENT_NAME = 'df_storage_sync';
-export const DATA_VERSION = 'df_data_v4_2026_11_10';
+export const DATA_VERSION = 'df_data_v5_2026_11_10';
 
 // Invalidate stale previous browser storage so updated product titles immediately load
 export function checkAndMigrateStorage(): void {
@@ -142,7 +142,10 @@ export function listProducts(filters?: ProductFilterOptions): AdminProduct[] {
 export async function loadProducts(): Promise<AdminProduct[]> {
   try {
     const res = await apiClient.get<any[]>('/products?limit=100&includeHidden=true');
-    const mapped: AdminProduct[] = (res.data || []).map((item) => {
+    if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+      throw new Error('API returned empty or non-array product data');
+    }
+    const mapped: AdminProduct[] = res.data.map((item) => {
       const prod = mapApiProductToFrontend(item);
       return {
         ...prod,
@@ -155,6 +158,8 @@ export async function loadProducts(): Promise<AdminProduct[]> {
     return productsState;
   } catch (err) {
     console.warn('[AdminService] Backend loadProducts failed, using local cache:', err);
+    const stored = loadFromStorage<AdminProduct[]>(STORAGE_KEYS.PRODUCTS, [...INITIAL_ADMIN_PRODUCTS]);
+    productsState = (stored && stored.length > 0) ? stored : [...INITIAL_ADMIN_PRODUCTS];
     return productsState;
   }
 }
@@ -346,7 +351,10 @@ export function listCategories(filters?: CategoryFilterOptions): AdminCategory[]
 export async function loadCategories(): Promise<AdminCategory[]> {
   try {
     const res = await apiClient.get<any[]>('/categories?includeHidden=true&includeProductCounts=true');
-    const mapped: AdminCategory[] = (res.data || []).map((item) => {
+    if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+      throw new Error('API returned empty or non-array category data');
+    }
+    const mapped: AdminCategory[] = res.data.map((item) => {
       const cat = mapApiCategoryToFrontend(item);
       return {
         ...cat,
@@ -361,6 +369,8 @@ export async function loadCategories(): Promise<AdminCategory[]> {
     return categoriesState;
   } catch (err) {
     console.warn('[AdminService] Backend loadCategories failed, using local cache:', err);
+    const stored = loadFromStorage<AdminCategory[]>(STORAGE_KEYS.CATEGORIES, [...INITIAL_ADMIN_CATEGORIES]);
+    categoriesState = (stored && stored.length > 0) ? stored : [...INITIAL_ADMIN_CATEGORIES];
     return categoriesState;
   }
 }

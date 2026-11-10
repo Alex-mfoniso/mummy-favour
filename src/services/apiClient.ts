@@ -40,9 +40,10 @@ class ApiClient {
   private onUnauthorizedCallbacks: Array<() => void> = [];
 
   constructor() {
-    // Read from Vite environment variable or fall back to same-origin relative path in production
+    // Read from localStorage override, Vite environment variable, or fall back to same-origin relative path in production
+    const localOverride = typeof window !== 'undefined' ? window.localStorage?.getItem('df_api_url') : null;
     const defaultUrl = import.meta.env.PROD ? '/api/v1' : 'http://localhost:5000/api/v1';
-    const rawUrl = (import.meta.env.VITE_API_BASE_URL as string | undefined) || defaultUrl;
+    const rawUrl = localOverride || (import.meta.env.VITE_API_BASE_URL as string | undefined) || defaultUrl;
     this.baseUrl = rawUrl.replace(/\/+$/, '');
   }
 
@@ -104,14 +105,18 @@ class ApiClient {
 
     let payload: any;
     const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      try {
-        payload = await response.json();
-      } catch {
-        payload = null;
-      }
-    } else {
-      payload = await response.text();
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new ApiClientError(
+        'Expected JSON response from API but received non-JSON content.',
+        'INVALID_RESPONSE_TYPE',
+        response.status
+      );
+    }
+
+    try {
+      payload = await response.json();
+    } catch {
+      throw new ApiClientError('Failed to parse JSON response from API.', 'JSON_PARSE_ERROR', response.status);
     }
 
     // Automatically synchronize CSRF token if returned in response data

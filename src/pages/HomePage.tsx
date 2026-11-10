@@ -54,9 +54,15 @@ export const HomePage: React.FC = () => {
     setCategoriesError(null);
     try {
       const data = await fetchPublicCategories();
-      setCategories(data);
-    } catch (err: any) {
-      setCategoriesError('Unable to load categories. Please check your connection and try again.');
+      if (data && data.length > 0) {
+        setCategories(data);
+      } else {
+        const stored = getStoredCategories();
+        setCategories(stored && stored.length > 0 ? stored : PRODUCT_CATEGORIES);
+      }
+    } catch {
+      const stored = getStoredCategories();
+      setCategories(stored && stored.length > 0 ? stored : PRODUCT_CATEGORIES);
     } finally {
       setLoadingCategories(false);
     }
@@ -73,10 +79,18 @@ export const HomePage: React.FC = () => {
       } else {
         // Fallback to recent products if none marked featured
         const allRes = await fetchPublicProducts({ limit: 6 });
-        setFeaturedProducts(allRes.products || []);
+        if (allRes.products && allRes.products.length > 0) {
+          setFeaturedProducts(allRes.products);
+        } else {
+          const stored = getStoredProducts();
+          const fallback = stored && stored.length > 0 ? stored.filter((p) => p.featured) : PRODUCTS.filter((p) => p.featured);
+          setFeaturedProducts(fallback.length > 0 ? fallback.slice(0, 6) : PRODUCTS.slice(0, 6));
+        }
       }
-    } catch (err: any) {
-      setProductsError('Unable to load featured products. Please try again.');
+    } catch {
+      const stored = getStoredProducts();
+      const fallback = stored && stored.length > 0 ? stored.filter((p) => p.featured) : PRODUCTS.filter((p) => p.featured);
+      setFeaturedProducts(fallback.length > 0 ? fallback.slice(0, 6) : PRODUCTS.slice(0, 6));
     } finally {
       setLoadingProducts(false);
     }
@@ -111,7 +125,7 @@ export const HomePage: React.FC = () => {
     const target = featuredProducts.find(
       (p) => p.slug === 'heavy-duty-industrial-sacks' || p.id === 'df-prod-002'
     );
-    return target || featuredProducts[0] || null;
+    return target || featuredProducts[0] || PRODUCTS.find((p) => p.id === 'df-prod-002') || PRODUCTS[0];
   }, [featuredProducts]);
 
   useEffect(() => {
@@ -201,10 +215,10 @@ export const HomePage: React.FC = () => {
               <Link to={`/products/${heroProduct?.slug || 'heavy-duty-industrial-sacks'}`} className="group block relative rounded-md overflow-hidden border border-[#D8D5CB] shadow-subtle hover:border-[#246B45] transition-colors">
                 <OptimizedImage
                   src={heroProduct?.image || '/images/products/wholesale-dispatch-sacks.jpg'}
-                  alt={heroProduct?.title || heroProduct?.name || 'Heavy-Duty Industrial Sacks manufactured and staged by Divine Favour'}
+                  alt={heroProduct?.title || heroProduct?.name || 'Flat white manufactured and staged by Divine Favour'}
                   aspectRatio="portrait"
-                  fallbackLabel={heroProduct?.title || heroProduct?.name || 'Heavy-Duty Industrial Sacks'}
-                  category={heroProduct?.category || 'Heavy-Duty Sacks'}
+                  fallbackLabel={heroProduct?.title || heroProduct?.name || 'Flat white'}
+                  category={heroProduct?.category || 'Packaging Bags'}
                   provisionalNote="Authentic Factory Production"
                   className="w-full h-[320px] sm:h-[400px] object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -215,7 +229,7 @@ export const HomePage: React.FC = () => {
                 <div className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-[#246B45] shrink-0 mt-0.5" aria-hidden="true" />
                   <span>
-                    Featured Product: <strong className="text-[#252A27]">{heroProduct?.title || heroProduct?.name || 'Heavy-Duty Industrial Sacks'}</strong> — {heroProduct?.tagline || heroProduct?.shortDescription || heroProduct?.description || 'high-gauge reinforced nylon sacks engineered for bulk dispatch and heavy transit.'}
+                    Featured Product: <strong className="text-[#252A27]">{heroProduct?.title || heroProduct?.name || 'Flat white'}</strong> — {heroProduct?.tagline || heroProduct?.shortDescription || heroProduct?.description || 'high-gauge reinforced nylon sacks engineered for bulk dispatch and heavy transit.'}
                   </span>
                 </div>
                 <Link

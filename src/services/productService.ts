@@ -13,7 +13,7 @@ export const ADMIN_STORAGE_KEYS = {
   CATEGORIES: 'df_admin_categories_demo',
 };
 
-export const DATA_VERSION = 'df_data_v4_2026_11_10';
+export const DATA_VERSION = 'df_data_v5_2026_11_10';
 
 export function checkAndMigrateProductStorage(): void {
   try {
@@ -179,7 +179,11 @@ export async function fetchPublicProducts(filters?: {
     const queryStr = params.toString() ? `?${params.toString()}` : '';
     const res = await apiClient.get<any[]>(`/products${queryStr}`);
 
-    const mappedProducts = (res.data || []).map(mapApiProductToFrontend);
+    if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+      throw new Error('API returned empty or non-array product data');
+    }
+
+    const mappedProducts = res.data.map(mapApiProductToFrontend);
 
     // Cache fresh backend products to local storage
     if (mappedProducts.length > 0 && typeof window !== 'undefined') {
@@ -202,19 +206,25 @@ export async function fetchPublicProducts(filters?: {
 
     // 1. Prefer admin-edited products from storage — these reflect recent admin saves
     const storedProducts = getStoredProducts();
-    let filtered = storedProducts ? [...storedProducts] : [...PRODUCTS];
+    let filtered = (storedProducts && storedProducts.length > 0) ? [...storedProducts] : [...PRODUCTS];
 
     if (filters?.category && filters.category !== 'all') {
-      filtered = filtered.filter((p) => p.categoryId === filters.category);
+      filtered = filtered.filter((p) => p.categoryId === filters.category || p.category === filters.category);
     }
     if (filters?.search?.trim()) {
       const q = filters.search.trim().toLowerCase();
       filtered = filtered.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+        (p) => (p.title || p.name || '').toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q)
       );
     }
     if (typeof filters?.featured === 'boolean') {
-      filtered = filtered.filter((p) => Boolean(p.featured) === filters.featured);
+      const featuredMatches = filtered.filter((p) => Boolean(p.featured) === filters.featured);
+      if (featuredMatches.length > 0) {
+        filtered = featuredMatches;
+      }
+    }
+    if (filters?.limit && filters.limit > 0) {
+      filtered = filtered.slice(0, filters.limit);
     }
     return {
       products: filtered,
@@ -231,7 +241,7 @@ export async function fetchPublicProducts(filters?: {
 export async function fetchPublicProductBySlug(slug: string): Promise<Product | null> {
   try {
     const res = await apiClient.get<any>(`/products/${encodeURIComponent(slug)}`);
-    if (res.data) {
+    if (res.data && typeof res.data === 'object' && res.data.id) {
       return mapApiProductToFrontend(res.data);
     }
   } catch (err: any) {
@@ -240,7 +250,7 @@ export async function fetchPublicProductBySlug(slug: string): Promise<Product | 
 
   // 1. Check local storage products first (reflects admin edits, even offline or if slug/id was modified)
   const storedProducts = getStoredProducts();
-  if (storedProducts) {
+  if (storedProducts && storedProducts.length > 0) {
     const found = storedProducts.find((p) => p.slug === slug || p.id === slug);
     if (found) return found;
   }
@@ -256,7 +266,10 @@ export async function fetchPublicProductBySlug(slug: string): Promise<Product | 
 export async function fetchPublicCategories(): Promise<ProductCategory[]> {
   try {
     const res = await apiClient.get<any[]>('/categories?includeProductCounts=true');
-    const mapped = (res.data || []).map(mapApiCategoryToFrontend);
+    if (!res.data || !Array.isArray(res.data) || res.data.length === 0) {
+      throw new Error('API returned empty or non-array categories data');
+    }
+    const mapped = res.data.map(mapApiCategoryToFrontend);
     if (mapped.length > 0 && typeof window !== 'undefined') {
       try {
         window.localStorage?.setItem(ADMIN_STORAGE_KEYS.CATEGORIES, JSON.stringify(mapped));
@@ -271,6 +284,6 @@ export async function fetchPublicCategories(): Promise<ProductCategory[]> {
 
     // Prefer admin-edited categories from storage
     const storedCategories = getStoredCategories();
-    return storedCategories ?? PRODUCT_CATEGORIES;
+    return (storedCategories && storedCategories.length > 0) ? storedCategories : PRODUCT_CATEGORIES;
   }
 }

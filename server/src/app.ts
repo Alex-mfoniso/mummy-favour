@@ -43,6 +43,10 @@ export function createApp(): Express {
         if (config.isDevelopment && origin.startsWith('http://localhost:')) {
           return callback(null, true);
         }
+        // Allow vercel deployments (preview and production)
+        if (origin.endsWith('.vercel.app')) {
+          return callback(null, true);
+        }
         return callback(new Error(`Origin ${origin} is not allowed by CORS policy.`));
       },
       credentials: true,
