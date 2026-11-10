@@ -26,35 +26,56 @@ import { mapApiProductToFrontend, mapApiCategoryToFrontend } from './productServ
 import { enquiryService } from './enquiryService';
 import { businessSettingsService } from './businessSettingsService';
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   PRODUCTS: 'df_admin_products_demo',
   CATEGORIES: 'df_admin_categories_demo',
   ENQUIRIES: 'df_admin_enquiries_demo',
   SETTINGS: 'df_admin_settings_demo',
 };
 
-// Safe storage access helper
-function loadFromStorage<T>(key: string, fallback: T): T {
+export const SYNC_EVENT_NAME = 'df_storage_sync';
+
+// Safe storage access helper: uses localStorage (cross-tab persistent) with sessionStorage migration
+export function loadFromStorage<T>(key: string, fallback: T): T {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const saved = window.sessionStorage.getItem(key);
-      if (saved) {
-        return JSON.parse(saved);
+    if (typeof window !== 'undefined') {
+      const local = window.localStorage?.getItem(key);
+      if (local) {
+        try {
+          return JSON.parse(local);
+        } catch {
+          // parse error
+        }
+      }
+      const session = window.sessionStorage?.getItem(key);
+      if (session) {
+        try {
+          const parsed = JSON.parse(session);
+          // Migrate legacy session data to localStorage so other tabs immediately see it
+          window.localStorage?.setItem(key, session);
+          return parsed;
+        } catch {
+          // parse error
+        }
       }
     }
   } catch {
-    // SessionStorage unavailable or restricted
+    // Storage unavailable or restricted
   }
   return fallback;
 }
 
-function saveToStorage<T>(key: string, data: T): void {
+export function saveToStorage<T>(key: string, data: T): void {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.setItem(key, JSON.stringify(data));
+    if (typeof window !== 'undefined') {
+      const serialized = JSON.stringify(data);
+      window.localStorage?.setItem(key, serialized);
+      window.sessionStorage?.setItem(key, serialized);
+      // Dispatch in-window sync event so React state updates without page reload
+      window.dispatchEvent(new CustomEvent(SYNC_EVENT_NAME, { detail: { key, data } }));
     }
   } catch {
-    // SessionStorage write failed
+    // Storage write failed
   }
 }
 
@@ -157,11 +178,11 @@ export async function createProduct(productData: Omit<AdminProduct, 'id'>): Prom
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 
-    productsState = [mapped, ...productsState.filter((p) => p.id !== mapped.id)];
+    productsState = [mapped, ...productsState.filter((p) => p.id !== mapped.id && p.slug !== mapped.slug)];
     saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
     return mapped;
   } catch (err) {
-    console.warn('[AdminService] Backend createProduct failed, persisting to local session state:', err);
+    console.warn('[AdminService] Backend createProduct failed, persisting to local storage:', err);
     const newId = productData.slug || `prod-${Date.now()}`;
     const localProduct: AdminProduct = {
       ...productData,
@@ -169,7 +190,7 @@ export async function createProduct(productData: Omit<AdminProduct, 'id'>): Prom
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 
-    productsState = [localProduct, ...productsState.filter((p) => p.id !== localProduct.id)];
+    productsState = [localProduct, ...productsState.filter((p) => p.id !== localProduct.id && p.slug !== localProduct.slug)];
     saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
     return localProduct;
   }
@@ -218,16 +239,16 @@ export async function updateProduct(id: string, updates: Partial<AdminProduct>):
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 
-    const index = productsState.findIndex((p) => p.id === id);
+    const index = productsState.findIndex((p) => p.id === id || p.slug === id);
     if (index !== -1) {
       productsState[index] = mapped;
     } else {
-      productsState.push(mapped);
+      productsState.unshift(mapped);
     }
     saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
     return mapped;
   } catch (err) {
-    console.warn(`[AdminService] Backend updateProduct failed for ID "${id}", persisting to local session state:`, err);
+    console.warn(`[AdminService] Backend updateProduct failed for ID "${id}", persisting to local storage:`, err);
     const index = productsState.findIndex((p) => p.id === id || p.slug === id);
     const existing = index !== -1 ? productsState[index] : ({} as AdminProduct);
     const updated: AdminProduct = {
@@ -240,7 +261,7 @@ export async function updateProduct(id: string, updates: Partial<AdminProduct>):
     if (index !== -1) {
       productsState[index] = updated;
     } else {
-      productsState.push(updated);
+      productsState.unshift(updated);
     }
     saveToStorage(STORAGE_KEYS.PRODUCTS, productsState);
     return updated;
@@ -644,10 +665,15 @@ export function resetAdminDataToDefaults(): void {
   enquiriesState = [...INITIAL_ADMIN_ENQUIRIES];
   settingsState = { ...INITIAL_ADMIN_BUSINESS_SETTINGS };
 
-  if (typeof window !== 'undefined' && window.sessionStorage) {
-    window.sessionStorage.removeItem(STORAGE_KEYS.PRODUCTS);
-    window.sessionStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-    window.sessionStorage.removeItem(STORAGE_KEYS.ENQUIRIES);
-    window.sessionStorage.removeItem(STORAGE_KEYS.SETTINGS);
+  if (typeof window !== 'undefined') {
+    window.localStorage?.removeItem(STORAGE_KEYS.PRODUCTS);
+    window.localStorage?.removeItem(STORAGE_KEYS.CATEGORIES);
+    window.localStorage?.removeItem(STORAGE_KEYS.ENQUIRIES);
+    window.localStorage?.removeItem(STORAGE_KEYS.SETTINGS);
+    window.sessionStorage?.removeItem(STORAGE_KEYS.PRODUCTS);
+    window.sessionStorage?.removeItem(STORAGE_KEYS.CATEGORIES);
+    window.sessionStorage?.removeItem(STORAGE_KEYS.ENQUIRIES);
+    window.sessionStorage?.removeItem(STORAGE_KEYS.SETTINGS);
+    window.dispatchEvent(new CustomEvent(SYNC_EVENT_NAME, { detail: { key: 'all' } }));
   }
 }

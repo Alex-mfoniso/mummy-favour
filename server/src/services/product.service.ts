@@ -220,10 +220,14 @@ export class ProductService {
   }
 
   async updateProduct(id: string, input: UpdateProductInput): Promise<FormattedProduct> {
-    const existing = await productRepository.findById(id);
+    const existing =
+      (await productRepository.findById(id)) ||
+      (await productRepository.findBySlug(id, { includeHiddenCategories: true }));
     if (!existing) {
       throw new AppError(`Product with ID "${id}" was not found.`, 404, 'PRODUCT_NOT_FOUND');
     }
+
+    const targetId = existing.id;
 
     // Category Check if updated
     if (input.categoryId && input.categoryId !== existing.categoryId) {
@@ -240,7 +244,7 @@ export class ProductService {
     // Slug Conflict Check if updated
     if (input.slug && input.slug !== existing.slug) {
       const slugOwner = await productRepository.findBySlug(input.slug, { includeHiddenCategories: true });
-      if (slugOwner && slugOwner.id !== id) {
+      if (slugOwner && slugOwner.id !== targetId) {
         throw new AppError(
           `A product with the slug "${input.slug}" already exists.`,
           409,
@@ -273,7 +277,7 @@ export class ProductService {
       isProvisional: input.isProvisional !== undefined ? input.isProvisional : existingSpecs.isProvisional,
     };
 
-    const updated = await productRepository.update(id, {
+    const updated = await productRepository.update(targetId, {
       name,
       slug: input.slug,
       shortDescription,
@@ -290,14 +294,16 @@ export class ProductService {
   }
 
   async deleteProduct(id: string): Promise<{ id: string; message: string }> {
-    const existing = await productRepository.findById(id);
+    const existing =
+      (await productRepository.findById(id)) ||
+      (await productRepository.findBySlug(id, { includeHiddenCategories: true }));
     if (!existing) {
       throw new AppError(`Product with ID "${id}" was not found.`, 404, 'PRODUCT_NOT_FOUND');
     }
 
-    await productRepository.delete(id);
+    await productRepository.delete(existing.id);
     return {
-      id,
+      id: existing.id,
       message: `Product "${existing.name}" was successfully deleted.`,
     };
   }

@@ -6,24 +6,32 @@ const ENQUIRIES_STORAGE_KEY = 'df_admin_enquiries_demo';
 
 function getStoredEnquiries(): AdminEnquiry[] {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const saved = window.sessionStorage.getItem(ENQUIRIES_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-      window.sessionStorage.setItem(ENQUIRIES_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ENQUIRIES));
+    if (typeof window !== 'undefined') {
+      const savedLocal = window.localStorage?.getItem(ENQUIRIES_STORAGE_KEY);
+      if (savedLocal) return JSON.parse(savedLocal);
+      const savedSession = window.sessionStorage?.getItem(ENQUIRIES_STORAGE_KEY);
+      if (savedSession) {
+        window.localStorage?.setItem(ENQUIRIES_STORAGE_KEY, savedSession);
+        return JSON.parse(savedSession);
+      }
+      window.localStorage?.setItem(ENQUIRIES_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ENQUIRIES));
+      window.sessionStorage?.setItem(ENQUIRIES_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ENQUIRIES));
     }
   } catch {
-    // SessionStorage inaccessible
+    // Storage inaccessible
   }
   return [...INITIAL_ADMIN_ENQUIRIES];
 }
 
 function saveStoredEnquiries(enquiries: AdminEnquiry[]): void {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.setItem(ENQUIRIES_STORAGE_KEY, JSON.stringify(enquiries));
+    if (typeof window !== 'undefined') {
+      const serialized = JSON.stringify(enquiries);
+      window.localStorage?.setItem(ENQUIRIES_STORAGE_KEY, serialized);
+      window.sessionStorage?.setItem(ENQUIRIES_STORAGE_KEY, serialized);
     }
   } catch {
-    // SessionStorage write error
+    // Storage write error
   }
 }
 

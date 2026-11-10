@@ -12,7 +12,12 @@ import {
 } from '@/components/products';
 import { PRODUCTS } from '@/data/products';
 import { PRODUCT_CATEGORIES } from '@/data/categories';
-import { fetchPublicProducts, fetchPublicCategories } from '@/services/productService';
+import { 
+  fetchPublicProducts, 
+  fetchPublicCategories, 
+  getStoredProducts, 
+  getStoredCategories 
+} from '@/services/productService';
 import { Product, ProductCategory, ProductFiltersState, ProductSortOption } from '@/types';
 
 export const ProductsPage: React.FC = () => {
@@ -57,8 +62,14 @@ export const ProductsPage: React.FC = () => {
     setSearchParams({}, { replace: true });
   };
 
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
-  const [categories, setCategories] = useState<ProductCategory[]>(PRODUCT_CATEGORIES);
+  const [products, setProducts] = useState<Product[]>(() => {
+    const stored = getStoredProducts();
+    return stored && stored.length > 0 ? stored : PRODUCTS;
+  });
+  const [categories, setCategories] = useState<ProductCategory[]>(() => {
+    const stored = getStoredCategories();
+    return stored && stored.length > 0 ? stored : PRODUCT_CATEGORIES;
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -82,8 +93,26 @@ export const ProductsPage: React.FC = () => {
     };
 
     loadCatalogue();
+
+    // Listen for storage synchronization events across tabs and current window
+    const handleSync = () => {
+      const storedProds = getStoredProducts();
+      if (storedProds && storedProds.length > 0) {
+        setProducts(storedProds);
+      }
+      const storedCats = getStoredCategories();
+      if (storedCats && storedCats.length > 0) {
+        setCategories(storedCats);
+      }
+    };
+
+    window.addEventListener('df_storage_sync', handleSync);
+    window.addEventListener('storage', handleSync);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('df_storage_sync', handleSync);
+      window.removeEventListener('storage', handleSync);
     };
   }, []);
 

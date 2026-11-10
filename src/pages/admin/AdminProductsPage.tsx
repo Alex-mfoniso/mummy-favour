@@ -52,6 +52,16 @@ export const AdminProductsPage: React.FC = () => {
   useEffect(() => {
     document.title = 'Product Management | Divine Favour Internal Console';
     refreshData();
+
+    const handleSync = () => {
+      refreshData();
+    };
+    window.addEventListener('df_storage_sync', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('df_storage_sync', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, []);
 
   // Listen for redirect notice from edit/create page
@@ -337,7 +347,7 @@ export const AdminProductsPage: React.FC = () => {
           <span>
             Showing {filteredProducts.length} of {products.length} products
           </span>
-          <span>*Modifications persist in browser session state</span>
+          <span>*Edits synchronize across database and browser storage</span>
         </div>
       </div>
 

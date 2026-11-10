@@ -40,27 +40,34 @@ const FALLBACK_ADMIN_SESSION: AuthSessionData = {
 
 function getStoredSession(): AuthSessionData | null {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const saved = window.sessionStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+    if (typeof window !== 'undefined') {
+      const savedLocal = window.localStorage?.getItem(STORAGE_KEY);
+      if (savedLocal) return JSON.parse(savedLocal);
+      const savedSession = window.sessionStorage?.getItem(STORAGE_KEY);
+      if (savedSession) {
+        window.localStorage?.setItem(STORAGE_KEY, savedSession);
+        return JSON.parse(savedSession);
+      }
     }
   } catch {
-    // SessionStorage inaccessible
+    // Storage inaccessible
   }
   return null;
 }
 
 function saveStoredSession(session: AuthSessionData | null): void {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
+    if (typeof window !== 'undefined') {
       if (session) {
-        window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        window.localStorage?.setItem(STORAGE_KEY, JSON.stringify(session));
+        window.sessionStorage?.setItem(STORAGE_KEY, JSON.stringify(session));
       } else {
-        window.sessionStorage.removeItem(STORAGE_KEY);
+        window.localStorage?.removeItem(STORAGE_KEY);
+        window.sessionStorage?.removeItem(STORAGE_KEY);
       }
     }
   } catch {
-    // SessionStorage write error
+    // Storage write error
   }
 }
 

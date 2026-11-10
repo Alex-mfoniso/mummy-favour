@@ -229,24 +229,32 @@ const ORDERS_STORAGE_KEY = 'df_admin_orders_demo';
 
 function getStoredOrders(): OrderRecord[] {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const saved = window.sessionStorage.getItem(ORDERS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-      window.sessionStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ORDERS));
+    if (typeof window !== 'undefined') {
+      const savedLocal = window.localStorage?.getItem(ORDERS_STORAGE_KEY);
+      if (savedLocal) return JSON.parse(savedLocal);
+      const savedSession = window.sessionStorage?.getItem(ORDERS_STORAGE_KEY);
+      if (savedSession) {
+        window.localStorage?.setItem(ORDERS_STORAGE_KEY, savedSession);
+        return JSON.parse(savedSession);
+      }
+      window.localStorage?.setItem(ORDERS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ORDERS));
+      window.sessionStorage?.setItem(ORDERS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_ORDERS));
     }
   } catch {
-    // SessionStorage inaccessible
+    // Storage inaccessible
   }
   return [...INITIAL_ADMIN_ORDERS];
 }
 
 function saveStoredOrders(orders: OrderRecord[]): void {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+    if (typeof window !== 'undefined') {
+      const serialized = JSON.stringify(orders);
+      window.localStorage?.setItem(ORDERS_STORAGE_KEY, serialized);
+      window.sessionStorage?.setItem(ORDERS_STORAGE_KEY, serialized);
     }
   } catch {
-    // SessionStorage write error
+    // Storage write error
   }
 }
 

@@ -91,47 +91,63 @@ const LOGS_STORAGE_KEY = 'df_admin_audit_logs_demo';
 
 function getStoredUsers(): AdminUser[] {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const saved = window.sessionStorage.getItem(USERS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-      window.sessionStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_USERS));
+    if (typeof window !== 'undefined') {
+      const savedLocal = window.localStorage?.getItem(USERS_STORAGE_KEY);
+      if (savedLocal) return JSON.parse(savedLocal);
+      const savedSession = window.sessionStorage?.getItem(USERS_STORAGE_KEY);
+      if (savedSession) {
+        window.localStorage?.setItem(USERS_STORAGE_KEY, savedSession);
+        return JSON.parse(savedSession);
+      }
+      window.localStorage?.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_USERS));
+      window.sessionStorage?.setItem(USERS_STORAGE_KEY, JSON.stringify(INITIAL_ADMIN_USERS));
     }
   } catch {
-    // SessionStorage inaccessible
+    // Storage inaccessible
   }
   return [...INITIAL_ADMIN_USERS];
 }
 
 function saveStoredUsers(users: AdminUser[]): void {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    if (typeof window !== 'undefined') {
+      const serialized = JSON.stringify(users);
+      window.localStorage?.setItem(USERS_STORAGE_KEY, serialized);
+      window.sessionStorage?.setItem(USERS_STORAGE_KEY, serialized);
     }
   } catch {
-    // SessionStorage write error
+    // Storage write error
   }
 }
 
 function getStoredLogs(): AuditLogItem[] {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const saved = window.sessionStorage.getItem(LOGS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
-      window.sessionStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(INITIAL_AUDIT_LOGS));
+    if (typeof window !== 'undefined') {
+      const savedLocal = window.localStorage?.getItem(LOGS_STORAGE_KEY);
+      if (savedLocal) return JSON.parse(savedLocal);
+      const savedSession = window.sessionStorage?.getItem(LOGS_STORAGE_KEY);
+      if (savedSession) {
+        window.localStorage?.setItem(LOGS_STORAGE_KEY, savedSession);
+        return JSON.parse(savedSession);
+      }
+      window.localStorage?.setItem(LOGS_STORAGE_KEY, JSON.stringify(INITIAL_AUDIT_LOGS));
+      window.sessionStorage?.setItem(LOGS_STORAGE_KEY, JSON.stringify(INITIAL_AUDIT_LOGS));
     }
   } catch {
-    // SessionStorage inaccessible
+    // Storage inaccessible
   }
   return [...INITIAL_AUDIT_LOGS];
 }
 
 function saveStoredLogs(logs: AuditLogItem[]): void {
   try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs));
+    if (typeof window !== 'undefined') {
+      const serialized = JSON.stringify(logs);
+      window.localStorage?.setItem(LOGS_STORAGE_KEY, serialized);
+      window.sessionStorage?.setItem(LOGS_STORAGE_KEY, serialized);
     }
   } catch {
-    // SessionStorage write error
+    // Storage write error
   }
 }
 

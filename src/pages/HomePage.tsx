@@ -22,7 +22,9 @@ import { OptimizedImage } from '@/components/ui/OptimizedImage';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 import { ProductCategory, Product } from '@/types';
 import { fetchPublicCategories } from '@/services/categoryService';
-import { fetchPublicProducts } from '@/services/productService';
+import { fetchPublicProducts, getStoredProducts, getStoredCategories } from '@/services/productService';
+import { PRODUCTS } from '@/data/products';
+import { PRODUCT_CATEGORIES } from '@/data/categories';
 
 import { AUDIENCE_SEGMENTS } from '@/data/audience';
 import { WHY_DIVINE_FAVOUR_PILLARS } from '@/data/whyUs';
@@ -30,10 +32,20 @@ import { GET_STARTED_STEPS } from '@/data/processSteps';
 
 export const HomePage: React.FC = () => {
   const { settings } = useBusinessSettings();
-  const [categories, setCategories] = React.useState<ProductCategory[]>([]);
-  const [featuredProducts, setFeaturedProducts] = React.useState<Product[]>([]);
-  const [loadingCategories, setLoadingCategories] = React.useState<boolean>(true);
-  const [loadingProducts, setLoadingProducts] = React.useState<boolean>(true);
+  const [categories, setCategories] = React.useState<ProductCategory[]>(() => {
+    const stored = getStoredCategories();
+    return stored && stored.length > 0 ? stored : PRODUCT_CATEGORIES;
+  });
+  const [featuredProducts, setFeaturedProducts] = React.useState<Product[]>(() => {
+    const stored = getStoredProducts();
+    if (stored && stored.length > 0) {
+      const feat = stored.filter((p) => p.featured);
+      return feat.length > 0 ? feat.slice(0, 6) : stored.slice(0, 6);
+    }
+    return PRODUCTS.filter((p) => p.featured).slice(0, 6);
+  });
+  const [loadingCategories, setLoadingCategories] = React.useState<boolean>(false);
+  const [loadingProducts, setLoadingProducts] = React.useState<boolean>(false);
   const [categoriesError, setCategoriesError] = React.useState<string | null>(null);
   const [productsError, setProductsError] = React.useState<string | null>(null);
 
@@ -73,7 +85,34 @@ export const HomePage: React.FC = () => {
   React.useEffect(() => {
     loadCategories();
     loadFeaturedProducts();
+
+    // Listen for cross-tab or local storage updates so edits reflect immediately
+    const handleSync = () => {
+      const stored = getStoredProducts();
+      if (stored && stored.length > 0) {
+        const feat = stored.filter((p) => p.featured);
+        setFeaturedProducts(feat.length > 0 ? feat.slice(0, 6) : stored.slice(0, 6));
+      }
+      const storedCats = getStoredCategories();
+      if (storedCats && storedCats.length > 0) {
+        setCategories(storedCats);
+      }
+    };
+
+    window.addEventListener('df_storage_sync', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('df_storage_sync', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [loadCategories, loadFeaturedProducts]);
+
+  const heroProduct = React.useMemo(() => {
+    const target = featuredProducts.find(
+      (p) => p.slug === 'heavy-duty-industrial-sacks' || p.id === 'df-prod-002'
+    );
+    return target || featuredProducts[0] || null;
+  }, [featuredProducts]);
 
   useEffect(() => {
     document.title = settings.metaTitle || `${settings.businessName} - Quality Packaging. Reliable Supply.`;
@@ -159,13 +198,13 @@ export const HomePage: React.FC = () => {
 
             {/* Right Visual Image Column */}
             <div className="lg:col-span-5 bg-[#FAF9F6] border-t lg:border-t-0 lg:border-l border-[#D8D5CB] relative flex flex-col justify-between p-6 sm:p-8">
-              <Link to="/products/heavy-duty-industrial-sacks" className="group block relative rounded-md overflow-hidden border border-[#D8D5CB] shadow-subtle hover:border-[#246B45] transition-colors">
+              <Link to={`/products/${heroProduct?.slug || 'heavy-duty-industrial-sacks'}`} className="group block relative rounded-md overflow-hidden border border-[#D8D5CB] shadow-subtle hover:border-[#246B45] transition-colors">
                 <OptimizedImage
-                  src="/images/products/wholesale-dispatch-sacks.jpg"
-                  alt="Heavy-Duty Industrial Sacks manufactured and staged by Divine Favour"
+                  src={heroProduct?.image || '/images/products/wholesale-dispatch-sacks.jpg'}
+                  alt={heroProduct?.title || 'Heavy-Duty Industrial Sacks manufactured and staged by Divine Favour'}
                   aspectRatio="portrait"
-                  fallbackLabel="Heavy-Duty Industrial Sacks"
-                  category="Heavy-Duty Sacks"
+                  fallbackLabel={heroProduct?.title || 'Heavy-Duty Industrial Sacks'}
+                  category={heroProduct?.category || 'Heavy-Duty Sacks'}
                   provisionalNote="Authentic Factory Production"
                   className="w-full h-[320px] sm:h-[400px] object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -176,11 +215,11 @@ export const HomePage: React.FC = () => {
                 <div className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-[#246B45] shrink-0 mt-0.5" aria-hidden="true" />
                   <span>
-                    Featured Product: <strong className="text-[#252A27]">Heavy-Duty Industrial Sacks</strong> — high-gauge reinforced nylon sacks engineered for bulk dispatch and heavy transit.
+                    Featured Product: <strong className="text-[#252A27]">{heroProduct?.title || 'Heavy-Duty Industrial Sacks'}</strong> — {heroProduct?.tagline || heroProduct?.shortDescription || 'high-gauge reinforced nylon sacks engineered for bulk dispatch and heavy transit.'}
                   </span>
                 </div>
                 <Link
-                  to="/products/heavy-duty-industrial-sacks"
+                  to={`/products/${heroProduct?.slug || 'heavy-duty-industrial-sacks'}`}
                   className="shrink-0 text-xs font-semibold text-[#246B45] hover:underline flex items-center gap-1 mt-0.5"
                 >
                   View <ArrowRight className="w-3.5 h-3.5" />

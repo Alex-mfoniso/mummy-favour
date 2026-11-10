@@ -19,7 +19,7 @@ import {
   RelatedProducts 
 } from '@/components/products';
 import { PRODUCTS } from '@/data/products';
-import { fetchPublicProductBySlug } from '@/services/productService';
+import { fetchPublicProductBySlug, fetchPublicProducts, getStoredProducts } from '@/services/productService';
 import { Product } from '@/types';
 import { formatProductStatus } from '@/lib/utils';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
@@ -29,9 +29,18 @@ export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { settings, isWhatsAppConfigured } = useBusinessSettings();
 
-  // Lookup product from centralized data source with initial static match
+  // Lookup product — prefer admin-edited storage data, then static fallback
   const [product, setProduct] = useState<Product | null>(() => {
-    return PRODUCTS.find((p) => p.slug === slug) || null;
+    const stored = getStoredProducts();
+    if (stored) {
+      const found = stored.find((p) => p.slug === slug || p.id === slug);
+      if (found) return found;
+    }
+    return PRODUCTS.find((p) => p.slug === slug || p.id === slug) || null;
+  });
+  const [allProducts, setAllProducts] = useState<Product[]>(() => {
+    const stored = getStoredProducts();
+    return stored && stored.length > 0 ? stored : PRODUCTS;
   });
   const [loading, setLoading] = useState<boolean>(!product);
 
@@ -43,6 +52,8 @@ export const ProductDetailPage: React.FC = () => {
   useEffect(() => {
     if (!slug) return;
     let isMounted = true;
+
+    // Fetch single product
     fetchPublicProductBySlug(slug)
       .then((apiProduct) => {
         if (isMounted && apiProduct) {
@@ -56,8 +67,36 @@ export const ProductDetailPage: React.FC = () => {
         if (isMounted) setLoading(false);
       });
 
+    // Also refresh all products for related items
+    fetchPublicProducts({ limit: 100 })
+      .then((res) => {
+        if (isMounted && res.products && res.products.length > 0) {
+          setAllProducts(res.products);
+        }
+      })
+      .catch(() => {
+        // Fallback already populated
+      });
+
+    // Listen for storage synchronization events across tabs and current window
+    const handleSync = () => {
+      const stored = getStoredProducts();
+      if (stored && stored.length > 0) {
+        setAllProducts(stored);
+        const updated = stored.find((p) => p.slug === slug || p.id === slug);
+        if (updated) {
+          setProduct(updated);
+        }
+      }
+    };
+
+    window.addEventListener('df_storage_sync', handleSync);
+    window.addEventListener('storage', handleSync);
+
     return () => {
       isMounted = false;
+      window.removeEventListener('df_storage_sync', handleSync);
+      window.removeEventListener('storage', handleSync);
     };
   }, [slug]);
 
@@ -274,7 +313,7 @@ export const ProductDetailPage: React.FC = () => {
         {/* =========================================================================
             3. RELATED PRODUCTS SECTION
             ========================================================================= */}
-        <RelatedProducts currentProduct={product} allProducts={PRODUCTS} />
+        <RelatedProducts currentProduct={product} allProducts={allProducts} />
 
         {/* =========================================================================
             4. FINAL ENQUIRY CTA

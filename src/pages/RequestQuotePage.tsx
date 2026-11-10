@@ -15,7 +15,8 @@ import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { QuoteRequestForm } from '@/components/quote';
 import { Product } from '@/types';
-import { fetchPublicProducts } from '@/services/productService';
+import { fetchPublicProducts, getStoredProducts } from '@/services/productService';
+import { PRODUCTS } from '@/data/products';
 import { useBusinessSettings } from '@/context/BusinessSettingsContext';
 
 export const RequestQuotePage: React.FC = () => {
@@ -24,8 +25,11 @@ export const RequestQuotePage: React.FC = () => {
   const isCustomParam = searchParams.get('custom') === 'true';
   const { settings } = useBusinessSettings();
 
-  const [products, setProducts] = React.useState<Product[]>([]);
-  const [loadingProducts, setLoadingProducts] = React.useState<boolean>(true);
+  const [products, setProducts] = React.useState<Product[]>(() => {
+    const stored = getStoredProducts();
+    return stored && stored.length > 0 ? stored : PRODUCTS;
+  });
+  const [loadingProducts, setLoadingProducts] = React.useState<boolean>(false);
   const [productsError, setProductsError] = React.useState<string | null>(null);
 
   const loadProducts = React.useCallback(async () => {
@@ -33,7 +37,9 @@ export const RequestQuotePage: React.FC = () => {
     setProductsError(null);
     try {
       const res = await fetchPublicProducts({ limit: 100 });
-      setProducts(res.products || []);
+      if (res.products && res.products.length > 0) {
+        setProducts(res.products);
+      }
     } catch (err: any) {
       setProductsError('Unable to load product list. Please check your network and try again.');
     } finally {
@@ -43,6 +49,22 @@ export const RequestQuotePage: React.FC = () => {
 
   useEffect(() => {
     loadProducts();
+
+    // Listen for storage synchronization events across tabs and current window
+    const handleSync = () => {
+      const stored = getStoredProducts();
+      if (stored && stored.length > 0) {
+        setProducts(stored);
+      }
+    };
+
+    window.addEventListener('df_storage_sync', handleSync);
+    window.addEventListener('storage', handleSync);
+
+    return () => {
+      window.removeEventListener('df_storage_sync', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [loadProducts]);
 
   useEffect(() => {

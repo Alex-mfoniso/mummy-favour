@@ -3,6 +3,82 @@ import { Product, ProductCategory } from '@/types';
 import { PRODUCTS } from '@/data/products';
 import { PRODUCT_CATEGORIES } from '@/data/categories';
 
+// ─── Storage helpers ─────────────────────────────────────────────────────────
+// Reads from localStorage (cross-tab persistent) with seamless sessionStorage migration.
+// When the backend API is unavailable or offline, admin edits are persisted here,
+// so the public catalogue immediately reflects product edits across all tabs and windows.
+
+export const ADMIN_STORAGE_KEYS = {
+  PRODUCTS: 'df_admin_products_demo',
+  CATEGORIES: 'df_admin_categories_demo',
+};
+
+export function getStoredProducts(): Product[] | null {
+  try {
+    if (typeof window !== 'undefined') {
+      const local = window.localStorage?.getItem(ADMIN_STORAGE_KEYS.PRODUCTS);
+      if (local) {
+        try {
+          const parsed = JSON.parse(local) as Product[];
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch {
+          // parse error
+        }
+      }
+      const session = window.sessionStorage?.getItem(ADMIN_STORAGE_KEYS.PRODUCTS);
+      if (session) {
+        try {
+          const parsed = JSON.parse(session) as Product[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            window.localStorage?.setItem(ADMIN_STORAGE_KEYS.PRODUCTS, session);
+            return parsed;
+          }
+        } catch {
+          // parse error
+        }
+      }
+    }
+  } catch {
+    // Storage unavailable
+  }
+  return null;
+}
+
+export function getStoredCategories(): ProductCategory[] | null {
+  try {
+    if (typeof window !== 'undefined') {
+      const local = window.localStorage?.getItem(ADMIN_STORAGE_KEYS.CATEGORIES);
+      if (local) {
+        try {
+          const parsed = JSON.parse(local) as ProductCategory[];
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        } catch {
+          // parse error
+        }
+      }
+      const session = window.sessionStorage?.getItem(ADMIN_STORAGE_KEYS.CATEGORIES);
+      if (session) {
+        try {
+          const parsed = JSON.parse(session) as ProductCategory[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            window.localStorage?.setItem(ADMIN_STORAGE_KEYS.CATEGORIES, session);
+            return parsed;
+          }
+        } catch {
+          // parse error
+        }
+      }
+    }
+  } catch {
+    // Storage unavailable
+  }
+  return null;
+}
+
+// Backward compatibility aliases
+export const getSessionProducts = getStoredProducts;
+export const getSessionCategories = getStoredCategories;
+
 export interface ProductsResponse {
   products: Product[];
   total: number;
@@ -85,6 +161,17 @@ export async function fetchPublicProducts(filters?: {
     const res = await apiClient.get<any[]>(`/products${queryStr}`);
 
     const mappedProducts = (res.data || []).map(mapApiProductToFrontend);
+
+    // Cache fresh backend products to local storage
+    if (mappedProducts.length > 0 && typeof window !== 'undefined') {
+      try {
+        window.localStorage?.setItem(ADMIN_STORAGE_KEYS.PRODUCTS, JSON.stringify(mappedProducts));
+        window.sessionStorage?.setItem(ADMIN_STORAGE_KEYS.PRODUCTS, JSON.stringify(mappedProducts));
+      } catch {
+        // Storage write ignored
+      }
+    }
+
     return {
       products: mappedProducts,
       total: res.meta?.total ?? mappedProducts.length,
@@ -92,15 +179,20 @@ export async function fetchPublicProducts(filters?: {
       totalPages: res.meta?.totalPages ?? 1,
     };
   } catch (err) {
-    console.warn('[ProductService] Backend products fetch failed, using fallback static data:', err);
-    // Graceful fallback to static catalogue
-    let filtered = [...PRODUCTS];
+    console.warn('[ProductService] Backend products fetch failed, checking local storage then static fallback:', err);
+
+    // 1. Prefer admin-edited products from storage — these reflect recent admin saves
+    const storedProducts = getStoredProducts();
+    let filtered = storedProducts ? [...storedProducts] : [...PRODUCTS];
+
     if (filters?.category && filters.category !== 'all') {
       filtered = filtered.filter((p) => p.categoryId === filters.category);
     }
     if (filters?.search?.trim()) {
       const q = filters.search.trim().toLowerCase();
-      filtered = filtered.filter((p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q));
+      filtered = filtered.filter(
+        (p) => p.title.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+      );
     }
     if (typeof filters?.featured === 'boolean') {
       filtered = filtered.filter((p) => Boolean(p.featured) === filters.featured);
@@ -120,15 +212,23 @@ export async function fetchPublicProducts(filters?: {
 export async function fetchPublicProductBySlug(slug: string): Promise<Product | null> {
   try {
     const res = await apiClient.get<any>(`/products/${encodeURIComponent(slug)}`);
-    return mapApiProductToFrontend(res.data);
-  } catch (err: any) {
-    if (err?.status === 404) {
-      return null;
+    if (res.data) {
+      return mapApiProductToFrontend(res.data);
     }
-    console.warn(`[ProductService] Fetch product by slug "${slug}" failed, checking fallback:`, err);
-    const fallback = PRODUCTS.find((p) => p.slug === slug);
-    return fallback || null;
+  } catch (err: any) {
+    console.warn(`[ProductService] Fetch product by slug "${slug}" failed, checking local storage then static fallback:`, err);
   }
+
+  // 1. Check local storage products first (reflects admin edits, even offline or if slug/id was modified)
+  const storedProducts = getStoredProducts();
+  if (storedProducts) {
+    const found = storedProducts.find((p) => p.slug === slug || p.id === slug);
+    if (found) return found;
+  }
+
+  // 2. Final fallback: hardcoded static product data
+  const fallback = PRODUCTS.find((p) => p.slug === slug || p.id === slug);
+  return fallback || null;
 }
 
 /**
@@ -137,9 +237,21 @@ export async function fetchPublicProductBySlug(slug: string): Promise<Product | 
 export async function fetchPublicCategories(): Promise<ProductCategory[]> {
   try {
     const res = await apiClient.get<any[]>('/categories?includeProductCounts=true');
-    return (res.data || []).map(mapApiCategoryToFrontend);
+    const mapped = (res.data || []).map(mapApiCategoryToFrontend);
+    if (mapped.length > 0 && typeof window !== 'undefined') {
+      try {
+        window.localStorage?.setItem(ADMIN_STORAGE_KEYS.CATEGORIES, JSON.stringify(mapped));
+        window.sessionStorage?.setItem(ADMIN_STORAGE_KEYS.CATEGORIES, JSON.stringify(mapped));
+      } catch {
+        // Storage write ignored
+      }
+    }
+    return mapped;
   } catch (err) {
-    console.warn('[ProductService] Backend categories fetch failed, using fallback static data:', err);
-    return PRODUCT_CATEGORIES;
+    console.warn('[ProductService] Backend categories fetch failed, checking local storage then static fallback:', err);
+
+    // Prefer admin-edited categories from storage
+    const storedCategories = getStoredCategories();
+    return storedCategories ?? PRODUCT_CATEGORIES;
   }
 }
