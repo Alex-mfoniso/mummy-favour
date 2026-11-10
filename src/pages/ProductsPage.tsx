@@ -161,11 +161,11 @@ export const ProductsPage: React.FC = () => {
 
       // 4. Search Query Filter (name, description, category, material, specifications)
       if (searchNormalized.length > 0) {
-        const matchTitle = (product.name || product.title).toLowerCase().includes(searchNormalized);
-        const matchDescription = (product.shortDescription || product.description).toLowerCase().includes(searchNormalized);
-        const matchCategory = product.category.toLowerCase().includes(searchNormalized);
-        const matchMaterial = product.materialGrade.toLowerCase().includes(searchNormalized);
-        const matchSpecs = product.specifications.some(
+        const matchTitle = (product.title || product.name || '').toLowerCase().includes(searchNormalized);
+        const matchDescription = (product.tagline || product.shortDescription || product.description || '').toLowerCase().includes(searchNormalized);
+        const matchCategory = (product.category || '').toLowerCase().includes(searchNormalized);
+        const matchMaterial = (product.materialGrade || product.material || '').toLowerCase().includes(searchNormalized);
+        const matchSpecs = (product.specifications || []).some(
           spec => spec.label.toLowerCase().includes(searchNormalized) || spec.value.toLowerCase().includes(searchNormalized)
         );
 
@@ -178,15 +178,15 @@ export const ProductsPage: React.FC = () => {
     }).sort((a, b) => {
       // Sorting Logic
       if (filters.sortBy === 'name-asc') {
-        return (a.name || a.title).localeCompare(b.name || b.title);
+        return (a.title || a.name || '').localeCompare(b.title || b.name || '');
       }
       if (filters.sortBy === 'name-desc') {
-        return (b.name || b.title).localeCompare(a.name || a.title);
+        return (b.title || b.name || '').localeCompare(a.title || a.name || '');
       }
       // Default: 'featured' priority, then alphabetical
       if (a.featured && !b.featured) return -1;
       if (!a.featured && b.featured) return 1;
-      return (a.name || a.title).localeCompare(b.name || b.title);
+      return (a.title || a.name || '').localeCompare(b.title || b.name || '');
     });
   }, [products, filters]);
 

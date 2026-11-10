@@ -18,8 +18,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   showRequestPrice = true,
 }) => {
   const statusInfo = formatProductStatus(product.status);
-  const title = product.name || product.title;
-  const description = product.shortDescription || product.tagline;
+  const title = product.title || product.name;
+  const description = product.tagline || product.shortDescription || product.description;
 
   return (
     <article

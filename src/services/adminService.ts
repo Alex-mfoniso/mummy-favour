@@ -187,6 +187,12 @@ export async function createProduct(productData: Omit<AdminProduct, 'id'>): Prom
     const localProduct: AdminProduct = {
       ...productData,
       id: newId,
+      title: productData.title,
+      name: productData.title,
+      tagline: productData.tagline,
+      shortDescription: productData.tagline,
+      description: productData.description,
+      fullDescription: productData.description,
       lastUpdated: new Date().toISOString().split('T')[0],
     };
 
@@ -251,9 +257,19 @@ export async function updateProduct(id: string, updates: Partial<AdminProduct>):
     console.warn(`[AdminService] Backend updateProduct failed for ID "${id}", persisting to local storage:`, err);
     const index = productsState.findIndex((p) => p.id === id || p.slug === id);
     const existing = index !== -1 ? productsState[index] : ({} as AdminProduct);
+    const nextTitle = updates.title || updates.name || existing.title || (existing as any).name;
+    const nextTagline = updates.tagline || (updates as any).shortDescription || existing.tagline || (existing as any).shortDescription;
+    const nextDescription = updates.description || (updates as any).fullDescription || existing.description || (existing as any).fullDescription;
+
     const updated: AdminProduct = {
       ...existing,
       ...updates,
+      title: nextTitle,
+      name: nextTitle,
+      tagline: nextTagline,
+      shortDescription: nextTagline,
+      description: nextDescription,
+      fullDescription: nextDescription,
       id: existing.id || id,
       lastUpdated: new Date().toISOString().split('T')[0],
     };

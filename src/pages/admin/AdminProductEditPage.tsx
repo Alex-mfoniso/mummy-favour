@@ -184,11 +184,14 @@ export const AdminProductEditPage: React.FC = () => {
 
     const productPayload: Omit<AdminProduct, 'id'> = {
       title: title.trim(),
+      name: title.trim(),
       slug: slug.trim().toLowerCase(),
       categoryId,
       category: categoryName,
       tagline: tagline.trim(),
+      shortDescription: tagline.trim(),
       description: description.trim(),
+      fullDescription: description.trim(),
       image: image.trim() || undefined,
       imageAlt: `${title.trim()} nylon packaging specimen`,
       status,
