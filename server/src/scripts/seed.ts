@@ -58,7 +58,7 @@ export const INITIAL_CATEGORIES = [
 export const INITIAL_PRODUCTS = [
   {
     id: 'df-prod-001',
-    name: 'Retail Shopping & Carrier Bags',
+    name: 'Pharmacy bag',
     slug: 'retail-shopping-carrier-bags',
     categoryId: 'carrier-bags',
     shortDescription:
@@ -97,7 +97,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-002',
-    name: 'Heavy-Duty Industrial Sacks',
+    name: 'Flat white',
     slug: 'heavy-duty-industrial-sacks',
     categoryId: 'packaging-bags',
     shortDescription:
@@ -132,7 +132,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-003',
-    name: 'Continuous Heat-Shrink Bundling Film',
+    name: 'Bread wrapper',
     slug: 'heat-shrink-bundling-film',
     categoryId: 'nylon-rolls-and-film',
     shortDescription:
@@ -199,7 +199,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-005',
-    name: 'Agricultural Mulch & Greenhouse Films',
+    name: 'Foreign glass',
     slug: 'agricultural-mulch-greenhouse-films',
     categoryId: 'other-nylon-products',
     shortDescription:
@@ -232,7 +232,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-006',
-    name: 'Custom Printed Packaging Nylon',
+    name: 'shopping Bag',
     slug: 'custom-printed-packaging-nylon',
     categoryId: 'custom-printed-nylon',
     shortDescription:
@@ -267,7 +267,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-007',
-    name: 'Industrial Stretch Wrap Pallet Film',
+    name: 'Santana white',
     slug: 'industrial-stretch-wrap-pallet-film',
     categoryId: 'nylon-rolls-and-film',
     shortDescription:
@@ -300,7 +300,7 @@ export const INITIAL_PRODUCTS = [
   },
   {
     id: 'df-prod-008',
-    name: 'Reinforced Punch-Hole Boutique Bags',
+    name: 'shopping Bag',
     slug: 'reinforced-punch-hole-boutique-bags',
     categoryId: 'carrier-bags',
     shortDescription:

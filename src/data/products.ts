@@ -10,8 +10,8 @@ import { Product } from '@/types';
 export const PRODUCTS: Product[] = [
   {
     id: 'df-prod-001',
-    title: 'Retail Shopping & Carrier Bags',
-    name: 'Retail Shopping & Carrier Bags',
+    title: 'Pharmacy bag',
+    name: 'Pharmacy bag',
     slug: 'retail-shopping-carrier-bags',
     categoryId: 'carrier-bags',
     category: 'Carrier Bags',
@@ -50,8 +50,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'df-prod-002',
-    title: 'Heavy-Duty Industrial Sacks',
-    name: 'Heavy-Duty Industrial Sacks',
+    title: 'Flat white',
+    name: 'Flat white',
     slug: 'heavy-duty-industrial-sacks',
     categoryId: 'packaging-bags',
     category: 'Packaging Bags',
@@ -90,8 +90,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'df-prod-003',
-    title: 'Continuous Heat-Shrink Bundling Film',
-    name: 'Continuous Heat-Shrink Bundling Film',
+    title: 'Bread wrapper',
+    name: 'Bread wrapper',
     slug: 'heat-shrink-bundling-film',
     categoryId: 'nylon-rolls-and-film',
     category: 'Nylon Rolls & Film',
@@ -166,8 +166,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'df-prod-005',
-    title: 'Agricultural Mulch & Greenhouse Films',
-    name: 'Agricultural Mulch & Greenhouse Films',
+    title: 'Foreign glass',
+    name: 'Foreign glass',
     slug: 'agricultural-mulch-greenhouse-films',
     categoryId: 'other-nylon-products',
     category: 'Other Nylon Products',
@@ -204,8 +204,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'df-prod-006',
-    title: 'Custom Printed Packaging Nylon',
-    name: 'Custom Printed Packaging Nylon',
+    title: 'shopping Bag',
+    name: 'shopping Bag',
     slug: 'custom-printed-packaging-nylon',
     categoryId: 'custom-printed-nylon',
     category: 'Custom Printed Nylon',
@@ -240,8 +240,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'df-prod-007',
-    title: 'Industrial Stretch Wrap Pallet Film',
-    name: 'Industrial Stretch Wrap Pallet Film',
+    title: 'Santana white',
+    name: 'Santana white',
     slug: 'industrial-stretch-wrap-pallet-film',
     categoryId: 'nylon-rolls-and-film',
     category: 'Nylon Rolls & Film',
@@ -274,8 +274,8 @@ export const PRODUCTS: Product[] = [
   },
   {
     id: 'df-prod-008',
-    title: 'Reinforced Punch-Hole Boutique Bags',
-    name: 'Reinforced Punch-Hole Boutique Bags',
+    title: 'shopping Bag',
+    name: 'shopping Bag',
     slug: 'reinforced-punch-hole-boutique-bags',
     categoryId: 'carrier-bags',
     category: 'Carrier Bags',
