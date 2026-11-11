@@ -177,7 +177,7 @@ export const INITIAL_PRODUCTS = [
     galleryImageUrls: [
       '/images/products/packaging-bags-clear-stacks.jpg',
     ],
-    featured: false,
+    featured: true,
     status: ProductAvailability.IN_STOCK,
     specifications: {
       materialGrade: 'Virgin Polypropylene (PP) / High-Clarity LDPE',
@@ -210,7 +210,7 @@ export const INITIAL_PRODUCTS = [
     galleryImageUrls: [
       '/images/products/industrial-black-nylon-rolls.jpg',
     ],
-    featured: false,
+    featured: true,
     status: ProductAvailability.MADE_TO_ORDER,
     specifications: {
       materialGrade: 'LLDPE / LDPE Agricultural Grade Blend',
@@ -278,7 +278,7 @@ export const INITIAL_PRODUCTS = [
     galleryImageUrls: [
       '/images/products/factory-raw-materials-polymer-rolls.jpg',
     ],
-    featured: false,
+    featured: true,
     status: ProductAvailability.IN_STOCK,
     specifications: {
       materialGrade: 'Cast Linear Low-Density Polyethylene (LLDPE)',
@@ -311,7 +311,7 @@ export const INITIAL_PRODUCTS = [
     galleryImageUrls: [
       '/images/products/carrier-bag-punch-hole-white-back.jpg',
     ],
-    featured: false,
+    featured: true,
     status: ProductAvailability.MADE_TO_ORDER,
     specifications: {
       materialGrade: 'Heavy-Gauge Virgin LDPE',

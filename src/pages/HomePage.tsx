@@ -39,10 +39,9 @@ export const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = React.useState<Product[]>(() => {
     const stored = getStoredProducts();
     if (stored && stored.length > 0) {
-      const feat = stored.filter((p) => p.featured);
-      return feat.length > 0 ? feat.slice(0, 6) : stored.slice(0, 6);
+      return stored;
     }
-    return PRODUCTS.filter((p) => p.featured).slice(0, 6);
+    return PRODUCTS;
   });
   const [loadingCategories, setLoadingCategories] = React.useState<boolean>(false);
   const [loadingProducts, setLoadingProducts] = React.useState<boolean>(false);
@@ -72,25 +71,16 @@ export const HomePage: React.FC = () => {
     setLoadingProducts(true);
     setProductsError(null);
     try {
-      // First try fetching featured products
-      const res = await fetchPublicProducts({ featured: true, limit: 6 });
+      const res = await fetchPublicProducts({ limit: 100 });
       if (res.products && res.products.length > 0) {
         setFeaturedProducts(res.products);
       } else {
-        // Fallback to recent products if none marked featured
-        const allRes = await fetchPublicProducts({ limit: 6 });
-        if (allRes.products && allRes.products.length > 0) {
-          setFeaturedProducts(allRes.products);
-        } else {
-          const stored = getStoredProducts();
-          const fallback = stored && stored.length > 0 ? stored.filter((p) => p.featured) : PRODUCTS.filter((p) => p.featured);
-          setFeaturedProducts(fallback.length > 0 ? fallback.slice(0, 6) : PRODUCTS.slice(0, 6));
-        }
+        const stored = getStoredProducts();
+        setFeaturedProducts(stored && stored.length > 0 ? stored : PRODUCTS);
       }
     } catch {
       const stored = getStoredProducts();
-      const fallback = stored && stored.length > 0 ? stored.filter((p) => p.featured) : PRODUCTS.filter((p) => p.featured);
-      setFeaturedProducts(fallback.length > 0 ? fallback.slice(0, 6) : PRODUCTS.slice(0, 6));
+      setFeaturedProducts(stored && stored.length > 0 ? stored : PRODUCTS);
     } finally {
       setLoadingProducts(false);
     }
@@ -104,8 +94,7 @@ export const HomePage: React.FC = () => {
     const handleSync = () => {
       const stored = getStoredProducts();
       if (stored && stored.length > 0) {
-        const feat = stored.filter((p) => p.featured);
-        setFeaturedProducts(feat.length > 0 ? feat.slice(0, 6) : stored.slice(0, 6));
+        setFeaturedProducts(stored);
       }
       const storedCats = getStoredCategories();
       if (storedCats && storedCats.length > 0) {
@@ -229,7 +218,7 @@ export const HomePage: React.FC = () => {
                 <div className="flex items-start gap-2">
                   <CheckCircle className="w-4 h-4 text-[#246B45] shrink-0 mt-0.5" aria-hidden="true" />
                   <span>
-                    Featured Product: <strong className="text-[#252A27]">{heroProduct?.title || heroProduct?.name || 'Flat white'}</strong> — {heroProduct?.tagline || heroProduct?.shortDescription || heroProduct?.description || 'high-gauge reinforced nylon sacks engineered for bulk dispatch and heavy transit.'}
+                    Featured Product: <strong className="text-[#252A27]">{heroProduct?.title || heroProduct?.name || 'Flat white'}</strong> — {heroProduct?.tagline || heroProduct?.shortDescription || heroProduct?.description || 'high-tensile packaging bags designed for durable transit and reliable protection.'}
                   </span>
                 </div>
                 <Link
@@ -362,7 +351,7 @@ export const HomePage: React.FC = () => {
                     {settings.businessName} provides nylon packaging solutions for customers with different needs. Whether you are purchasing for everyday use or sourcing for a business, our team is available to help you explore suitable options and request pricing.
                   </p>
                   <p className="text-xs sm:text-sm text-[#5C635F]">
-                    From retail store carrier bags to heavy-duty industrial sacks, packaging is fundamental to keeping products protected, clean, and ready for transit. We focus on practical, consistent nylon production with direct, accessible customer communication.
+                    From pharmacy bags and flat white packaging to custom printed nylon, packaging is fundamental to keeping products protected, clean, and ready for transit. We focus on practical, consistent nylon production with direct, accessible customer communication.
                   </p>
                 </div>
 
@@ -557,9 +546,9 @@ export const HomePage: React.FC = () => {
         <Container size="xl">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <SectionHeading
-              eyebrow="Sample Preview"
+              eyebrow="Product Showcase"
               title="Featured Packaging Items"
-              description="Preview select nylon items to inspect typical formats and submit price inquiries."
+              description="Explore our full selection of quality nylon packaging products manufactured for retail, commercial, and industrial use."
               className="mb-0"
             />
 
