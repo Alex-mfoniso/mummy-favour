@@ -1,20 +1,31 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { ProductCategory } from '@/types';
+import { ProductCategory, Product } from '@/types';
+import { PRODUCTS } from '@/data/products';
+import { getStoredProducts } from '@/services/productService';
 import { OptimizedImage } from './OptimizedImage';
 
 export interface CategoryCardProps {
   category: ProductCategory;
   featured?: boolean;
   className?: string;
+  products?: Product[];
 }
 
 export const CategoryCard: React.FC<CategoryCardProps> = ({
   category,
   featured = false,
   className = '',
+  products,
 }) => {
+  const categoryProducts = React.useMemo(() => {
+    const list = products && products.length > 0 ? products : (getStoredProducts() || PRODUCTS);
+    return list.filter((p) => p.categoryId === category.id || p.category === category.name);
+  }, [products, category.id, category.name]);
+
+  const categoryUrl = `/products?category=${category.slug || category.id}`;
+
   return (
     <article
       className={`group bg-white border border-[#D8D5CB] rounded-md overflow-hidden flex flex-col justify-between transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-elevated hover:border-[#246B45] ${
@@ -33,7 +44,6 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           aspectRatio={featured ? 'wide' : 'landscape'}
           category={category.name}
           fallbackLabel={category.name}
-          provisionalNote="Provisional Classification"
           className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
         {category.badge && (
@@ -57,7 +67,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           </span>
           <h3 className="text-xl font-bold text-[#252A27] tracking-tight group-hover:text-[#246B45] transition-colors">
             <Link
-              to="/products"
+              to={categoryUrl}
               className="focus-visible:outline-2 focus-visible:outline-[#246B45] focus-visible:outline-offset-2 rounded"
             >
               {category.name}
@@ -66,17 +76,39 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({
           <p className="mt-2.5 text-xs sm:text-sm text-[#5C635F] leading-relaxed">
             {category.shortDescription}
           </p>
+
+          {/* Available Products in Category */}
+          {categoryProducts.length > 0 && (
+            <div className="mt-4 pt-3.5 border-t border-[#E6E4DD]">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#246B45] block mb-2">
+                Available Products ({categoryProducts.length}):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {categoryProducts.map((p) => (
+                  <Link
+                    key={p.id}
+                    to={`/products/${p.slug}`}
+                    className="inline-flex items-center text-xs font-semibold bg-[#FAF9F6] border border-[#D8D5CB] text-[#252A27] px-2.5 py-1 rounded-sm hover:border-[#246B45] hover:text-[#246B45] hover:bg-[#EAF3ED] transition-colors"
+                  >
+                    {p.title || p.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 pt-4 border-t border-[#E6E4DD] flex items-center justify-between">
           <Link
-            to="/products"
+            to={categoryUrl}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-[#246B45] group-hover:text-[#1D5838] transition-colors group-hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-[#246B45] rounded-sm"
           >
             <span>Explore Products</span>
             <ArrowRight className="w-3.5 h-3.5 stroke-[2.2] transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
           </Link>
-          <span className="text-[11px] text-[#88918C]">Sample Range</span>
+          <span className="text-[11px] text-[#88918C]">
+            {categoryProducts.length > 0 ? `${categoryProducts.length} items` : 'In Catalogue'}
+          </span>
         </div>
       </div>
     </article>

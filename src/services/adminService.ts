@@ -34,7 +34,7 @@ export const STORAGE_KEYS = {
 };
 
 export const SYNC_EVENT_NAME = 'df_storage_sync';
-export const DATA_VERSION = 'df_data_v6_2026_11_11';
+export const DATA_VERSION = 'df_data_v7_2026_11_11';
 
 // Invalidate stale previous browser storage so updated product titles immediately load
 export function checkAndMigrateStorage(): void {

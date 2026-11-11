@@ -13,7 +13,7 @@ export const ADMIN_STORAGE_KEYS = {
   CATEGORIES: 'df_admin_categories_demo',
 };
 
-export const DATA_VERSION = 'df_data_v6_2026_11_11';
+export const DATA_VERSION = 'df_data_v7_2026_11_11';
 
 export function checkAndMigrateProductStorage(): void {
   try {

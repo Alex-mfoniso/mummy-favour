@@ -297,6 +297,7 @@ export const HomePage: React.FC = () => {
                   key={category.id}
                   category={category}
                   featured={index === 0}
+                  products={featuredProducts}
                 />
               ))}
             </div>
