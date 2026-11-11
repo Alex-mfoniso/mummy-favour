@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
-  Send, 
   MessageSquare, 
   RotateCcw, 
   CheckCircle2, 
@@ -29,7 +28,6 @@ import { WhatsAppNotice } from './WhatsAppNotice';
 import { 
   generateQuotationMessage, 
   generateWhatsAppUrl, 
-  isWhatsAppConfigured,
   formatPackagingTypeLabel
 } from '@/lib/whatsapp';
 import { enquiryService, PublicEnquiryConfirmation } from '@/services/enquiryService';
@@ -50,7 +48,6 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
   unknownSlugAttempt = null,
   className = '',
 }) => {
-  const navigate = useNavigate();
   const { settings } = useBusinessSettings();
   const [copiedRef, setCopiedRef] = useState(false);
 
@@ -84,11 +81,10 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [confirmationData, setConfirmationData] = useState<PublicEnquiryConfirmation | null>(null);
-  const [submitState, setSubmitState] = useState<'idle' | 'submitted-success' | 'submitted-unconfigured'>('idle');
+  const [submitState, setSubmitState] = useState<'idle' | 'submitted-success' | 'submitted-unconfigured' | 'redirecting'>('idle');
   const [generatedMessage, setGeneratedMessage] = useState<string>('');
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
 
-  const whatsAppReady = isWhatsAppConfigured();
   const selectedProduct = products.find((p) => p.slug === formData.productSlug);
 
   // Handle mode toggle
@@ -165,7 +161,7 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent, options?: { sendViaWhatsApp?: boolean }) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -175,92 +171,94 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
     setIsSubmitting(true);
     setSubmitError(null);
 
-    try {
-      const items = mode === 'standard' ? [
-        {
-          productSlug: formData.productSlug,
-          productName: selectedProduct?.title,
-          quantity: formData.quantity ? Number(formData.quantity.replace(/,/g, '')) : undefined,
-          unit: formData.unit,
-          size: formData.preferredSize || undefined,
-          gauge: formData.preferredThickness || undefined,
-          color: formData.preferredColor || undefined,
-          customPrinting: formData.customPrinting,
-          specifications: formData.intendedUse ? { intendedUse: formData.intendedUse } : undefined,
-        }
-      ] : [
-        {
-          productName: formatPackagingTypeLabel(formData.customPackagingType),
-          quantity: formData.quantity ? Number(formData.quantity.replace(/,/g, '')) : undefined,
-          unit: formData.unit,
-          size: formData.preferredSize || undefined,
-          gauge: formData.preferredThickness || undefined,
-          color: formData.preferredColor || undefined,
-          customPrinting: formData.customPrinting,
-          specifications: {
-            customPackagingType: formData.customPackagingType,
-            intendedUse: formData.intendedUse,
-          },
-        }
-      ];
+    // 1. Prepare initial quote & order message for WhatsApp
+    const initialMsg = generateQuotationMessage(
+      formData,
+      mode === 'standard' ? selectedProduct?.title : undefined,
+      mode === 'standard' ? selectedProduct?.category : undefined,
+      undefined,
+      settings.businessName
+    );
+    const targetWhatsAppNumber = settings.whatsAppNumber || '2348134726113';
+    let targetUrl = generateWhatsAppUrl(initialMsg, targetWhatsAppNumber) || `https://wa.me/2348134726113?text=${encodeURIComponent(initialMsg)}`;
+    setWhatsappUrl(targetUrl);
+    setGeneratedMessage(initialMsg);
 
-      const confirmation = await enquiryService.submitPublicEnquiry({
-        customerName: formData.fullName.trim(),
-        businessName: formData.businessName.trim() || undefined,
-        customerPhone: formData.phone.trim(),
-        customerEmail: formData.email.trim() || undefined,
-        customerType: (formData.customerType as any) || 'individual',
-        enquiryType: mode === 'custom' ? 'quote_custom' : 'quote_standard',
-        customerMessage: formData.additionalRequirements.trim() || undefined,
-        source: 'Quote Request Page',
-        items,
-      });
-
-      setConfirmationData(confirmation);
-      try {
-        sessionStorage.setItem('df_last_enquiry_confirmation', JSON.stringify(confirmation));
-      } catch {}
-
-      // Prepare WhatsApp handoff message with reference
-      const enrichedMsg = generateQuotationMessage(
-        formData,
-        mode === 'standard' ? selectedProduct?.title : undefined,
-        mode === 'standard' ? selectedProduct?.category : undefined,
-        confirmation.reference,
-        settings.businessName
-      );
-      setGeneratedMessage(enrichedMsg);
-
-      if (whatsAppReady) {
-        const url = generateWhatsAppUrl(enrichedMsg);
-        setWhatsappUrl(url);
-
-        // If user explicitly clicked Send Quote on WhatsApp, open WhatsApp directly
-        if (options?.sendViaWhatsApp && url) {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        }
+    const items = mode === 'standard' ? [
+      {
+        productSlug: formData.productSlug,
+        productName: selectedProduct?.title,
+        quantity: formData.quantity ? Number(formData.quantity.replace(/,/g, '')) : undefined,
+        unit: formData.unit,
+        size: formData.preferredSize || undefined,
+        gauge: formData.preferredThickness || undefined,
+        color: formData.preferredColor || undefined,
+        customPrinting: formData.customPrinting,
+        specifications: formData.intendedUse ? { intendedUse: formData.intendedUse } : undefined,
       }
+    ] : [
+      {
+        productName: formatPackagingTypeLabel(formData.customPackagingType),
+        quantity: formData.quantity ? Number(formData.quantity.replace(/,/g, '')) : undefined,
+        unit: formData.unit,
+        size: formData.preferredSize || undefined,
+        gauge: formData.preferredThickness || undefined,
+        color: formData.preferredColor || undefined,
+        customPrinting: formData.customPrinting,
+        specifications: {
+          customPackagingType: formData.customPackagingType,
+          intendedUse: formData.intendedUse,
+        },
+      }
+    ];
 
-      setSubmitState('submitted-success');
-      navigate('/enquiry-confirmation', { state: { confirmation } });
-    } catch (err: any) {
-      // If user chose WhatsApp submission and backend is temporarily unreachable, open WhatsApp anyway
-      if (options?.sendViaWhatsApp && whatsAppReady) {
-        const fallbackMsg = generateQuotationMessage(
+    // 2. Asynchronously persist enquiry with short 1.2s timeout so the user is never delayed
+    try {
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 1200));
+      const confirmation = await Promise.race([
+        enquiryService.submitPublicEnquiry({
+          customerName: formData.fullName.trim(),
+          businessName: formData.businessName.trim() || undefined,
+          customerPhone: formData.phone.trim(),
+          customerEmail: formData.email.trim() || undefined,
+          customerType: (formData.customerType as any) || 'individual',
+          enquiryType: mode === 'custom' ? 'quote_custom' : 'quote_standard',
+          customerMessage: formData.additionalRequirements.trim() || undefined,
+          source: 'Quote Request Page',
+          items,
+        }),
+        timeoutPromise
+      ]);
+
+      if (confirmation && 'reference' in confirmation) {
+        setConfirmationData(confirmation);
+        try {
+          sessionStorage.setItem('df_last_enquiry_confirmation', JSON.stringify(confirmation));
+        } catch {}
+
+        const enrichedMsg = generateQuotationMessage(
           formData,
           mode === 'standard' ? selectedProduct?.title : undefined,
           mode === 'standard' ? selectedProduct?.category : undefined,
-          undefined,
+          confirmation.reference,
           settings.businessName
         );
-        const url = generateWhatsAppUrl(fallbackMsg);
-        if (url) {
-          window.open(url, '_blank', 'noopener,noreferrer');
-        }
+        setGeneratedMessage(enrichedMsg);
+        targetUrl = generateWhatsAppUrl(enrichedMsg, targetWhatsAppNumber) || targetUrl;
+        setWhatsappUrl(targetUrl);
       }
-      setSubmitError(err.message || 'We could not submit your quotation enquiry right now. Please verify your connection and try again.');
+    } catch (err: any) {
+      console.warn('[QuoteRequestForm] Background enquiry save warning:', err);
     } finally {
       setIsSubmitting(false);
+    }
+
+    // 3. Immediately transition UI to redirecting state
+    setSubmitState('redirecting');
+
+    // 4. Redirect straight to WhatsApp
+    if (targetUrl) {
+      window.location.href = targetUrl;
     }
   };
 
@@ -409,8 +407,46 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
         </div>
       )}
 
+      {/* Redirecting to WhatsApp Screen */}
+      {submitState === 'redirecting' && (
+        <div className="bg-white border-2 border-[#246B45] rounded-xl p-8 sm:p-12 shadow-md text-center space-y-6 max-w-lg mx-auto">
+          <div className="w-16 h-16 rounded-full bg-[#EAF3ED] text-[#246B45] mx-auto flex items-center justify-center animate-pulse">
+            <MessageSquare className="w-8 h-8" />
+          </div>
+
+          <div className="space-y-2">
+            <h3 className="text-xl sm:text-2xl font-bold text-[#252A27]">
+              Opening WhatsApp...
+            </h3>
+            <p className="text-xs sm:text-sm text-[#5C635F] leading-relaxed">
+              Your specifications and order enquiry have been compiled. Taking you straight to WhatsApp to chat directly with our order desk.
+            </p>
+          </div>
+
+          {confirmationData?.reference && (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#FAF9F6] border border-[#E6E4DD] rounded-full text-xs font-mono font-bold text-[#246B45]">
+              Reference: {confirmationData.reference}
+            </div>
+          )}
+
+          <div className="pt-2">
+            <a
+              href={whatsappUrl || `https://wa.me/2348134726113`}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-[#246B45] text-white font-bold rounded-lg hover:bg-[#1D5838] transition-colors shadow-md text-sm sm:text-base w-full sm:w-auto"
+            >
+              <MessageSquare className="w-5 h-5 text-white" />
+              <span>Click Here if WhatsApp Didn't Open</span>
+            </a>
+          </div>
+
+          <p className="text-[11px] text-[#88918C]">
+            Direct Order Desk: +234 813 472 6113
+          </p>
+        </div>
+      )}
+
       {/* Main Quotation Form */}
-      {submitState !== 'submitted-success' && (
+      {submitState !== 'submitted-success' && submitState !== 'redirecting' && (
         <form onSubmit={handleSubmit} noValidate className="space-y-8">
           {/* Inline Error Banner if Submission Failed */}
           {submitError && (
@@ -755,25 +791,14 @@ export const QuoteRequestForm: React.FC<QuoteRequestFormProps> = ({
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <Button
-                  type="button"
-                  onClick={(e) => handleSubmit(e, { sendViaWhatsApp: true })}
+                  type="submit"
                   variant="primary"
                   size="lg"
                   disabled={isSubmitting}
-                  leftIcon={<MessageSquare className="w-4 h-4" />}
-                  className="bg-[#246B45] hover:bg-[#1D5838] shadow-md font-bold"
+                  leftIcon={<MessageSquare className="w-5 h-5 text-white" />}
+                  className="bg-[#246B45] hover:bg-[#1D5838] shadow-md font-bold text-white text-base py-3 px-6"
                 >
-                  {isSubmitting ? 'Recording Enquiry...' : 'Send Quote on WhatsApp'}
-                </Button>
-
-                <Button
-                  type="submit"
-                  variant="outline"
-                  size="lg"
-                  disabled={isSubmitting}
-                  leftIcon={<Send className="w-4 h-4" />}
-                >
-                  Submit Online
+                  {isSubmitting ? 'Opening WhatsApp...' : 'Send Quote / Order on WhatsApp'}
                 </Button>
               </div>
 

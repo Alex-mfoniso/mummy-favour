@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { MobileBottomNav } from '@/components/layout/MobileBottomNav';
 import { ScrollToTop } from '@/components/layout/ScrollToTop';
 import { PageTransition } from '@/components/layout/PageTransition';
+import { FloatingWhatsApp } from '@/components/layout/FloatingWhatsApp';
 
 export const PublicLayout: React.FC = () => {
   return (
@@ -29,6 +30,9 @@ export const PublicLayout: React.FC = () => {
           <Outlet />
         </PageTransition>
       </main>
+
+      {/* Floating direct WhatsApp order button */}
+      <FloatingWhatsApp />
 
       {/* Main Public Footer */}
       <Footer />

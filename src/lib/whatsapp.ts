@@ -141,12 +141,12 @@ export function generateQuotationMessage(
   const isCustomMode = form.mode === 'custom';
 
   if (isCustomMode) {
-    parts.push(`*${brand} | CUSTOM PACKAGING REQUIREMENT*`);
+    parts.push(`*${brand} | CUSTOM PACKAGING ORDER & QUOTE*`);
   } else {
-    parts.push(`*${brand} | PACKAGING QUOTATION ENQUIRY*`);
+    parts.push(`*${brand} | PACKAGING ORDER & QUOTE ENQUIRY*`);
   }
   if (reference) {
-    parts.push(`*Enquiry Reference:* ${reference}`);
+    parts.push(`*Order Reference:* ${reference}`);
   }
   parts.push('----------------------------------------');
   
@@ -211,8 +211,8 @@ export function generateQuotationMessage(
   }
 
   parts.push('----------------------------------------');
-  parts.push(`Hello ${brandNormal} sales desk, please review my specifications above for quotation.`);
-  parts.push(`_Sent via ${brandNormal} Website Quotation Builder_`);
+  parts.push(`Hello ${brandNormal} sales desk, I want to place an order / receive pricing based on my specifications above. Please provide current quotation and availability.`);
+  parts.push(`_Sent via ${brandNormal} Order & Quotation Portal_`);
 
   return parts.join('\n');
 }
@@ -242,8 +242,8 @@ export function generateConfirmationWhatsAppMessage(
   const brand = (businessName || SITE_CONFIG.name || 'Divine Favour').toUpperCase();
   const brandNormal = businessName || SITE_CONFIG.name || 'Divine Favour';
   const parts: string[] = [];
-  parts.push(`*${brand} | OFFICIAL QUOTATION REQUEST*`);
-  parts.push(`*Enquiry Reference:* ${confirmation.reference}`);
+  parts.push(`*${brand} | ORDER & QUOTATION ENQUIRY*`);
+  parts.push(`*Order Reference:* ${confirmation.reference}`);
   parts.push('----------------------------------------');
   parts.push('*1. Customer Details:*');
   parts.push(`• Name: ${confirmation.customerName}`);
@@ -256,7 +256,7 @@ export function generateConfirmationWhatsAppMessage(
 
   if (confirmation.items && confirmation.items.length > 0) {
     parts.push('');
-    parts.push('*2. Quotation Specifications:*');
+    parts.push('*2. Order & Packaging Specifications:*');
     confirmation.items.forEach((item, index) => {
       const prefix = confirmation.items && confirmation.items.length > 1 ? `Item ${index + 1}: ` : '';
       parts.push(`• ${prefix}${item.productName || 'Bespoke Nylon Packaging'}`);
@@ -285,7 +285,7 @@ export function generateConfirmationWhatsAppMessage(
   }
 
   parts.push('----------------------------------------');
-  parts.push(`Hello ${brandNormal} sales desk, I submitted this quotation enquiry on your website and would like to finalize pricing and delivery.`);
+  parts.push(`Hello ${brandNormal} sales desk, I submitted this order / quote on your website and would like to finalize pricing and delivery.`);
   parts.push(`_Sent via ${brandNormal} Quotation Portal_`);
 
   return parts.join('\n');
@@ -302,13 +302,13 @@ export function generateProductWhatsAppQuoteMessage(
   const brand = (businessName || SITE_CONFIG.name || 'Divine Favour').toUpperCase();
   const brandNormal = businessName || SITE_CONFIG.name || 'Divine Favour';
   const parts: string[] = [];
-  parts.push(`*${brand} | PRODUCT QUOTATION ENQUIRY*`);
+  parts.push(`*${brand} | PRODUCT ORDER & QUOTE*`);
   parts.push('----------------------------------------');
-  parts.push(`• Selected Product: ${productTitle}${category ? ` (${category})` : ''}`);
+  parts.push(`• Product: *${productTitle}*${category ? ` (${category})` : ''}`);
   parts.push('');
-  parts.push(`Hello ${brandNormal} sales team, I would like to request an official quotation for this product. Please share current bulk pricing, gauge options, and delivery timelines.`);
+  parts.push(`Hello ${brandNormal} sales team, I want to place an order / get a price quotation for *${productTitle}*. Please share current pricing, minimum quantities, and delivery options.`);
   parts.push('----------------------------------------');
-  parts.push(`_Sent via ${brandNormal} Website Catalogue_`);
+  parts.push(`_Sent via ${brandNormal} Online Catalogue_`);
   return parts.join('\n');
 }
 

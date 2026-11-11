@@ -282,13 +282,13 @@ export const ProductDetailPage: React.FC = () => {
                     className="w-full sm:w-auto"
                   >
                     <Button
-                      variant="outline"
+                      variant="primary"
                       size="md"
                       fullWidth
-                      leftIcon={<MessageSquare className="w-4 h-4 text-[#246B45]" />}
-                      className="border-[#246B45] text-[#246B45] hover:bg-[#EAF3ED]"
+                      leftIcon={<MessageSquare className="w-4 h-4 text-white" />}
+                      className="bg-[#246B45] hover:bg-[#1D5838] text-white font-bold shadow-sm"
                     >
-                      Quote on WhatsApp
+                      Order on WhatsApp
                     </Button>
                   </a>
                 )}
@@ -297,12 +297,12 @@ export const ProductDetailPage: React.FC = () => {
                   className="w-full sm:w-auto"
                 >
                   <Button
-                    variant="primary"
+                    variant="outline"
                     size="md"
                     fullWidth
                     rightIcon={<ArrowRight className="w-4 h-4 stroke-[2]" />}
                   >
-                    Request a Quote
+                    Customize Specs
                   </Button>
                 </Link>
               </div>
@@ -341,24 +341,24 @@ export const ProductDetailPage: React.FC = () => {
                 className="w-full sm:w-auto"
               >
                 <Button
-                  variant="outline"
+                  variant="primary"
                   size="md"
                   fullWidth
-                  leftIcon={<MessageSquare className="w-4 h-4 text-[#246B45]" />}
-                  className="border-[#246B45] text-[#246B45] hover:bg-[#EAF3ED]"
+                  leftIcon={<MessageSquare className="w-4 h-4 text-white" />}
+                  className="bg-[#246B45] hover:bg-[#1D5838] text-white font-bold shadow-sm"
                 >
-                  Quote on WhatsApp
+                  Order on WhatsApp
                 </Button>
               </a>
             )}
             <Link to={`/request-quote?product=${product.slug}`} className="w-full sm:w-auto">
               <Button
-                variant="primary"
+                variant="outline"
                 size="md"
                 fullWidth
                 rightIcon={<ArrowRight className="w-4 h-4 stroke-[2]" />}
               >
-                Request a Quote
+                Customize Specifications
               </Button>
             </Link>
             <Link to="/contact" className="w-full sm:w-auto">

@@ -1,10 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Sparkles, MessageSquare } from 'lucide-react';
 import { Product } from '@/types';
 import { formatProductStatus } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
+import { useBusinessSettings } from '@/context/BusinessSettingsContext';
+import { buildWhatsAppUrl, generateProductWhatsAppQuoteMessage } from '@/lib/whatsapp';
 
 export interface ProductCardProps {
   product: Product;
@@ -17,9 +19,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   className = '',
   showRequestPrice = true,
 }) => {
+  const { settings } = useBusinessSettings();
   const statusInfo = formatProductStatus(product.status);
-  const title = product.title || product.name;
+  const title = product.title || product.name || 'Packaging Product';
   const description = product.tagline || product.shortDescription || product.description;
+
+  const whatsAppNumber = settings?.whatsAppNumber || '2348134726113';
+  const whatsAppOrderUrl = buildWhatsAppUrl(
+    whatsAppNumber,
+    generateProductWhatsAppQuoteMessage(title, product.category, settings?.businessName)
+  );
 
   return (
     <article
@@ -125,14 +134,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </Link>
 
           {showRequestPrice && (
-            <Link
-              to={`/request-quote?product=${product.slug}`}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#246B45] hover:text-[#1D5838] transition-colors group-hover:underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-[#246B45] rounded-sm py-1 px-1.5"
-              aria-label={`Request price quote for ${title}`}
+            <a
+              href={whatsAppOrderUrl || `https://wa.me/2348134726113`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-[#246B45] hover:bg-[#1D5838] transition-colors rounded-sm py-1.5 px-3 shadow-2xs focus-visible:outline-2 focus-visible:outline-[#246B45]"
+              aria-label={`Order ${title} on WhatsApp`}
             >
-              <span>Request Price</span>
-              <ArrowRight className="w-3.5 h-3.5 stroke-[2.2] transition-transform duration-200 group-hover:translate-x-1" aria-hidden="true" />
-            </Link>
+              <MessageSquare className="w-3.5 h-3.5 text-white" aria-hidden="true" />
+              <span>Order on WhatsApp</span>
+            </a>
           )}
         </div>
       </div>
